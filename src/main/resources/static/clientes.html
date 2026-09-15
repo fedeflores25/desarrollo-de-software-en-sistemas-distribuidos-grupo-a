@@ -317,7 +317,9 @@
                         type="submit"
                         id="botonGuardar"
                         class="boton-guardar">
+
                         Guardar cliente
+
                     </button>
 
                     <button
@@ -326,7 +328,9 @@
                         class="boton-cancelar"
                         onclick="cancelarEdicion()"
                         style="display: none;">
+
                         Cancelar
+
                     </button>
 
                 </div>
@@ -348,6 +352,7 @@
                     <thead>
 
                         <tr>
+
                             <th>ID</th>
                             <th>Documento</th>
                             <th>Nombre</th>
@@ -357,11 +362,13 @@
                             <th>Fecha de nacimiento</th>
                             <th>Estado</th>
                             <th>Acciones</th>
+
                         </tr>
 
                     </thead>
 
                     <tbody id="tablaClientes">
+
                     </tbody>
 
                 </table>
@@ -419,21 +426,25 @@
                         method: 'POST',
 
                         headers: {
+
                             'Content-Type': 'application/json'
+
                         },
 
                         body: JSON.stringify(cliente)
 
                     })
 
-                    .then(response => {
+                    .then(async response => {
 
                         if (!response.ok) {
 
+                            const error = await response.json();
+
                             throw new Error(
+                                error.error ||
                                 'No se pudo guardar el cliente'
                             );
-
                         }
 
                         return response.json();
@@ -443,6 +454,7 @@
                     .then(() => {
 
                         alert('Cliente guardado correctamente');
+
                         location.reload();
 
                     })
@@ -467,22 +479,27 @@
                             method: 'PUT',
 
                             headers: {
+
                                 'Content-Type': 'application/json'
+
                             },
 
                             body: JSON.stringify(cliente)
 
                         }
+
                     )
 
-                    .then(response => {
+                    .then(async response => {
 
                         if (!response.ok) {
 
+                            const error = await response.json();
+
                             throw new Error(
+                                error.error ||
                                 'No se pudo modificar el cliente'
                             );
-
                         }
 
                         return response.json();
@@ -492,6 +509,7 @@
                     .then(() => {
 
                         alert('Cliente modificado correctamente');
+
                         location.reload();
 
                     })
@@ -522,7 +540,6 @@
 
                     const fila =
                         document.createElement('tr');
-
 
                     fila.innerHTML = `
 
@@ -562,7 +579,9 @@
                                 type="button"
                                 class="boton-editar"
                                 onclick="editarCliente(${cliente.id})">
+
                                 Editar
+
                             </button>
 
                             ${cliente.activo ? `
@@ -571,7 +590,9 @@
                                     type="button"
                                     class="boton-baja"
                                     onclick="darDeBaja(${cliente.id})">
+
                                     Dar de baja
+
                                 </button>
 
                             ` : ''}
@@ -579,7 +600,6 @@
                         </td>
 
                     `;
-
 
                     tabla.appendChild(fila);
 
@@ -640,8 +660,11 @@
                         .style.display = 'inline-block';
 
                     window.scrollTo({
+
                         top: 0,
+
                         behavior: 'smooth'
+
                     });
 
                 })
@@ -685,7 +708,9 @@
                 );
 
             if (!confirmar) {
+
                 return;
+
             }
 
 
@@ -706,6 +731,7 @@
                 }
 
                 alert('Cliente dado de baja correctamente');
+
                 location.reload();
 
             })
