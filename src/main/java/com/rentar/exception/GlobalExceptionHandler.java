@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     // DOCUMENTO O EMAIL DUPLICADO
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> manejarIllegalArgument(
-            IllegalArgumentException ex) {
+    @ExceptionHandler(ClienteDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarClienteDuplicado(
+            ClienteDuplicadoException ex) {
 
         Map<String, String> respuesta = new HashMap<>();
         respuesta.put("error", ex.getMessage());
