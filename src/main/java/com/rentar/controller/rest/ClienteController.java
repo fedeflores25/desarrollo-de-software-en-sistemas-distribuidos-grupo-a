@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rentar.dto.ClienteRequest;
+import com.rentar.dto.ClienteResponse;
 import com.rentar.entity.Cliente;
-import com.rentar.service.implementation.ClienteService;
+import com.rentar.service.IClienteService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -32,13 +32,11 @@ import jakarta.validation.Valid;
 )
 public class ClienteController {
 
-    private final ClienteService clienteService;
+    private final IClienteService clienteService;
 
-
-    public ClienteController(ClienteService clienteService) {
+    public ClienteController(IClienteService clienteService) {
         this.clienteService = clienteService;
     }
-
 
     // ALTA
 
@@ -47,16 +45,15 @@ public class ClienteController {
         description = "Da de alta un cliente en el sistema con estado activo"
     )
     @PostMapping
-    public ResponseEntity<Cliente> crear(
+    public ResponseEntity<ClienteResponse> crear(
             @Valid @RequestBody ClienteRequest request) {
 
         Cliente cliente = clienteService.crear(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(cliente);
+                .body(mapToResponse(cliente));
     }
-
 
     // CONSULTA DE TODOS
 
@@ -65,13 +62,15 @@ public class ClienteController {
         description = "Obtiene el listado completo de clientes activos e inactivos"
     )
     @GetMapping
-    public ResponseEntity<List<Cliente>> listar() {
+    public ResponseEntity<List<ClienteResponse>> listar() {
 
-        return ResponseEntity.ok(
-                clienteService.listar()
-        );
+        List<ClienteResponse> clientes = clienteService.listar()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        return ResponseEntity.ok(clientes);
     }
-
 
     // CONSULTA POR ID
 
@@ -80,14 +79,15 @@ public class ClienteController {
         description = "Obtiene los datos de un cliente utilizando su identificador"
     )
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarPorId(
+    public ResponseEntity<ClienteResponse> buscarPorId(
             @PathVariable Long id) {
 
+        Cliente cliente = clienteService.buscarPorId(id);
+
         return ResponseEntity.ok(
-                clienteService.buscarPorId(id)
+                mapToResponse(cliente)
         );
     }
-
 
     // MODIFICACION
 
@@ -96,15 +96,16 @@ public class ClienteController {
         description = "Modifica los datos de un cliente existente"
     )
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> modificar(
+    public ResponseEntity<ClienteResponse> modificar(
             @PathVariable Long id,
             @Valid @RequestBody ClienteRequest request) {
 
+        Cliente cliente = clienteService.modificar(id, request);
+
         return ResponseEntity.ok(
-                clienteService.modificar(id, request)
+                mapToResponse(cliente)
         );
     }
-
 
     // BAJA
 
@@ -121,4 +122,19 @@ public class ClienteController {
         return ResponseEntity.noContent().build();
     }
 
+    // CONVERSION DE ENTIDAD A DTO DE RESPUESTA
+
+    private ClienteResponse mapToResponse(Cliente cliente) {
+
+        return new ClienteResponse(
+                cliente.getId(),
+                cliente.getDocumento(),
+                cliente.getNombre(),
+                cliente.getApellido(),
+                cliente.getEmail(),
+                cliente.getTelefono(),
+                cliente.getFechaNacimiento(),
+                cliente.getActivo()
+        );
+    }
 }
