@@ -1,0 +1,35 @@
+enum TipoVehiculo {
+    SEDAN
+    SUV
+    PICKUP
+    COUPE
+    HATCHBACK
+}
+
+type VehiculoDisponible {
+    patente: String!
+    marca: String!
+    modelo: String!
+    anio: Int!
+    color: String
+    tipo: TipoVehiculo!
+    precioDiario: Float!
+}
+
+input DisponibilidadFiltro {
+    tipo: TipoVehiculo
+    marca: String
+    modelo: String
+    precioMin: Float
+    precioMax: Float
+
+    # FECHAS OBLIGATORIAS DEL PERIODO A CONSULTAR
+    fechaInicio: String!
+    fechaFin: String!
+}
+
+type Query {
+
+    # CONSULTA LOS VEHICULOS ACTIVOS Y DISPONIBLES DURANTE TODO EL PERIODO INDICADO
+    vehiculosDisponibles(filtro: DisponibilidadFiltro!): [VehiculoDisponible!]!
+}
