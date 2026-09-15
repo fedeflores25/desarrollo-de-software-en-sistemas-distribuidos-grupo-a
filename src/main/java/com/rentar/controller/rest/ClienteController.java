@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.rentar.dto.ClienteRequest;
 import com.rentar.entity.Cliente;
-import com.rentar.service.ClienteService;
+import com.rentar.service.implementation.ClienteService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

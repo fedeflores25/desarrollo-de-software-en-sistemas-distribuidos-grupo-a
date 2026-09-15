@@ -1,4 +1,4 @@
-package com.rentar.service;
+package com.rentar.service.implementation;
 
 import java.util.List;
 
@@ -8,9 +8,10 @@ import com.rentar.dto.ClienteRequest;
 import com.rentar.entity.Cliente;
 import com.rentar.exception.ClienteNoEncontradoException;
 import com.rentar.repository.ClienteRepository;
+import com.rentar.service.IClienteService;
 
 @Service
-public class ClienteService {
+public class ClienteService implements IClienteService {
 
     private final ClienteRepository clienteRepository;
 
