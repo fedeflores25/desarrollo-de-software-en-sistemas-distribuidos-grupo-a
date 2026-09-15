@@ -1,5 +1,7 @@
 package com.rentar.entity.enums;
 
-public class EstadoVehiculo {
-    
+public enum EstadoVehiculo {
+    DISPONIBLE,
+    RESERVADO,
+    EN_ALQUILER
 }

@@ -1,5 +1,9 @@
 package com.rentar.entity.enums;
 
-public class TipoVehiculo {
-    
+public enum TipoVehiculo {
+    SEDAN,
+    SUV,
+    PICKUP,
+    COUPE,
+    HATCHBACK
 }
