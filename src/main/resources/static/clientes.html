@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de Clientes - Rentar</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        /* ENCABEZADO */
+
+        .encabezado {
+            background-color: #1f3c5b;
+            color: white;
+            padding: 22px 40px;
+        }
+
+        .encabezado h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .encabezado p {
+            margin: 6px 0 0;
+            color: #d8e2ec;
+        }
+
+        /* CONTENIDO PRINCIPAL */
+
+        .contenedor {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* SECCIONES */
+
+        .seccion {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .seccion h2 {
+            margin-top: 0;
+            color: #1f3c5b;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 12px;
+        }
+
+        /* FORMULARIO */
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo label {
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .campo input {
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        .campo input:focus {
+            outline: none;
+            border-color: #1f3c5b;
+        }
+
+        .acciones-formulario {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* BOTONES */
+
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .boton-guardar {
+            background-color: #1f3c5b;
+            color: white;
+            padding: 11px 20px;
+            font-size: 15px;
+        }
+
+        .boton-guardar:hover {
+            background-color: #162d45;
+        }
+
+        .boton-cancelar {
+            background-color: #6c757d;
+            color: white;
+            padding: 11px 20px;
+            font-size: 15px;
+        }
+
+        .boton-cancelar:hover {
+            background-color: #565e64;
+        }
+
+        .boton-editar {
+            background-color: #e9a23b;
+            color: white;
+            margin-right: 5px;
+        }
+
+        .boton-editar:hover {
+            background-color: #cc861f;
+        }
+
+        .boton-baja {
+            background-color: #c94a4a;
+            color: white;
+        }
+
+        .boton-baja:hover {
+            background-color: #aa3838;
+        }
+
+        /* TABLA */
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #1f3c5b;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f7f9;
+        }
+
+        /* ESTADOS */
+
+        .estado {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .estado-activo {
+            background-color: #d9f2e3;
+            color: #267344;
+        }
+
+        .estado-inactivo {
+            background-color: #f2dddd;
+            color: #963b3b;
+        }
+
+        /* ADAPTACION A PANTALLAS CHICAS */
+
+        @media (max-width: 700px) {
+
+            .formulario {
+                grid-template-columns: 1fr;
+            }
+
+            .acciones-formulario {
+                grid-column: 1;
+            }
+
+            .encabezado {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- ENCABEZADO -->
+
+    <header class="encabezado">
+
+        <h1>Rentar</h1>
+
+        <p>Gestión de clientes</p>
+
+    </header>
+
+    <main class="contenedor">
+
+        <!-- FORMULARIO -->
+
+        <section class="seccion">
+
+            <h2 id="tituloFormulario">Nuevo cliente</h2>
+
+            <form id="formCliente" class="formulario">
+
+                <div class="campo">
+
+                    <label for="documento">Documento</label>
+
+                    <input
+                        type="text"
+                        id="documento"
+                        required>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="nombre">Nombre</label>
+
+                    <input
+                        type="text"
+                        id="nombre"
+                        required>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="apellido">Apellido</label>
+
+                    <input
+                        type="text"
+                        id="apellido"
+                        required>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="email">Email</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        required>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="telefono">Teléfono</label>
+
+                    <input
+                        type="text"
+                        id="telefono">
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="fechaNacimiento">
+                        Fecha de nacimiento
+                    </label>
+
+                    <input
+                        type="date"
+                        id="fechaNacimiento">
+
+                </div>
+
+                <div class="acciones-formulario">
+
+                    <button
+                        type="submit"
+                        id="botonGuardar"
+                        class="boton-guardar">
+                        Guardar cliente
+                    </button>
+
+                    <button
+                        type="button"
+                        id="botonCancelar"
+                        class="boton-cancelar"
+                        onclick="cancelarEdicion()"
+                        style="display: none;">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <!-- LISTADO DE CLIENTES -->
+
+        <section class="seccion">
+
+            <h2>Clientes registrados</h2>
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>ID</th>
+                            <th>Documento</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Fecha de nacimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tablaClientes">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        // GUARDA EL ID DEL CLIENTE QUE SE ESTA EDITANDO
+
+        let clienteEditandoId = null;
+
+
+        // ALTA O MODIFICACION DE CLIENTE
+
+        document.getElementById('formCliente')
+            .addEventListener('submit', function(event) {
+
+                event.preventDefault();
+
+                const cliente = {
+
+                    documento:
+                        document.getElementById('documento').value,
+
+                    nombre:
+                        document.getElementById('nombre').value,
+
+                    apellido:
+                        document.getElementById('apellido').value,
+
+                    email:
+                        document.getElementById('email').value,
+
+                    telefono:
+                        document.getElementById('telefono').value,
+
+                    fechaNacimiento:
+                        document.getElementById('fechaNacimiento').value
+                        || null
+
+                };
+
+
+                // SI NO SE ESTA EDITANDO, SE HACE UN POST
+
+                if (clienteEditandoId === null) {
+
+                    fetch('/api/clientes', {
+
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+
+                        body: JSON.stringify(cliente)
+
+                    })
+
+                    .then(response => {
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                'No se pudo guardar el cliente'
+                            );
+
+                        }
+
+                        return response.json();
+
+                    })
+
+                    .then(() => {
+
+                        alert('Cliente guardado correctamente');
+                        location.reload();
+
+                    })
+
+                    .catch(error => {
+
+                        alert(error.message);
+
+                    });
+
+                }
+
+
+                // SI SE ESTA EDITANDO, SE HACE UN PUT
+
+                else {
+
+                    fetch(
+                        '/api/clientes/' + clienteEditandoId,
+                        {
+
+                            method: 'PUT',
+
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+
+                            body: JSON.stringify(cliente)
+
+                        }
+                    )
+
+                    .then(response => {
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                'No se pudo modificar el cliente'
+                            );
+
+                        }
+
+                        return response.json();
+
+                    })
+
+                    .then(() => {
+
+                        alert('Cliente modificado correctamente');
+                        location.reload();
+
+                    })
+
+                    .catch(error => {
+
+                        alert(error.message);
+
+                    });
+
+                }
+
+            });
+
+
+        // LISTADO DE CLIENTES
+
+        fetch('/api/clientes')
+
+            .then(response => response.json())
+
+            .then(clientes => {
+
+                const tabla =
+                    document.getElementById('tablaClientes');
+
+                clientes.forEach(cliente => {
+
+                    const fila =
+                        document.createElement('tr');
+
+
+                    fila.innerHTML = `
+
+                        <td>${cliente.id}</td>
+
+                        <td>${cliente.documento}</td>
+
+                        <td>${cliente.nombre}</td>
+
+                        <td>${cliente.apellido}</td>
+
+                        <td>${cliente.email}</td>
+
+                        <td>${cliente.telefono ?? ''}</td>
+
+                        <td>${cliente.fechaNacimiento ?? ''}</td>
+
+                        <td>
+
+                            <span class="
+                                estado
+                                ${cliente.activo
+                                    ? 'estado-activo'
+                                    : 'estado-inactivo'}">
+
+                                ${cliente.activo
+                                    ? 'Activo'
+                                    : 'Inactivo'}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="boton-editar"
+                                onclick="editarCliente(${cliente.id})">
+                                Editar
+                            </button>
+
+                            ${cliente.activo ? `
+
+                                <button
+                                    type="button"
+                                    class="boton-baja"
+                                    onclick="darDeBaja(${cliente.id})">
+                                    Dar de baja
+                                </button>
+
+                            ` : ''}
+
+                        </td>
+
+                    `;
+
+
+                    tabla.appendChild(fila);
+
+                });
+
+            });
+
+
+        // CARGAR CLIENTE EN EL FORMULARIO
+
+        function editarCliente(id) {
+
+            fetch('/api/clientes/' + id)
+
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            'No se pudo obtener el cliente'
+                        );
+
+                    }
+
+                    return response.json();
+
+                })
+
+                .then(cliente => {
+
+                    clienteEditandoId = cliente.id;
+
+                    document.getElementById('documento').value =
+                        cliente.documento;
+
+                    document.getElementById('nombre').value =
+                        cliente.nombre;
+
+                    document.getElementById('apellido').value =
+                        cliente.apellido;
+
+                    document.getElementById('email').value =
+                        cliente.email;
+
+                    document.getElementById('telefono').value =
+                        cliente.telefono ?? '';
+
+                    document.getElementById('fechaNacimiento').value =
+                        cliente.fechaNacimiento ?? '';
+
+                    document.getElementById('tituloFormulario')
+                        .textContent = 'Editar cliente';
+
+                    document.getElementById('botonGuardar')
+                        .textContent = 'Guardar cambios';
+
+                    document.getElementById('botonCancelar')
+                        .style.display = 'inline-block';
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+
+                })
+
+                .catch(error => {
+
+                    alert(error.message);
+
+                });
+
+        }
+
+
+        // CANCELAR MODIFICACION
+
+        function cancelarEdicion() {
+
+            clienteEditandoId = null;
+
+            document.getElementById('formCliente').reset();
+
+            document.getElementById('tituloFormulario')
+                .textContent = 'Nuevo cliente';
+
+            document.getElementById('botonGuardar')
+                .textContent = 'Guardar cliente';
+
+            document.getElementById('botonCancelar')
+                .style.display = 'none';
+
+        }
+
+
+        // BAJA DE CLIENTE
+
+        function darDeBaja(id) {
+
+            const confirmar =
+                confirm(
+                    '¿Está seguro de que desea dar de baja al cliente?'
+                );
+
+            if (!confirmar) {
+                return;
+            }
+
+
+            fetch('/api/clientes/' + id, {
+
+                method: 'DELETE'
+
+            })
+
+            .then(response => {
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        'No se pudo dar de baja al cliente'
+                    );
+
+                }
+
+                alert('Cliente dado de baja correctamente');
+                location.reload();
+
+            })
+
+            .catch(error => {
+
+                alert(error.message);
+
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
