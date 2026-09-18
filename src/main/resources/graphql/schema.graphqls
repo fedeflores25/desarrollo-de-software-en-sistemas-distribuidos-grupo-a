@@ -1,3 +1,4 @@
+"""Tipos de vehiculos disponibles para alquiler."""
 enum TipoVehiculo {
     SEDAN
     SUV
@@ -6,6 +7,7 @@ enum TipoVehiculo {
     HATCHBACK
 }
 
+"""Informacion de un vehiculo disponible."""
 type VehiculoDisponible {
     patente: String!
     marca: String!
@@ -16,20 +18,20 @@ type VehiculoDisponible {
     precioDiario: Float!
 }
 
+"""Filtros para consultar disponibilidad. Las fechas son obligatorias."""
 input DisponibilidadFiltro {
     tipo: TipoVehiculo
     marca: String
     modelo: String
     precioMin: Float
     precioMax: Float
-
-    # FECHAS OBLIGATORIAS DEL PERIODO A CONSULTAR
     fechaInicio: String!
     fechaFin: String!
 }
 
 type Query {
-
-    # CONSULTA LOS VEHICULOS ACTIVOS Y DISPONIBLES DURANTE TODO EL PERIODO INDICADO
-    vehiculosDisponibles(filtro: DisponibilidadFiltro!): [VehiculoDisponible!]!
+    """Consulta vehiculos activos y disponibles durante el periodo indicado."""
+    vehiculosDisponibles(
+        filtro: DisponibilidadFiltro!
+    ): [VehiculoDisponible!]!
 }
