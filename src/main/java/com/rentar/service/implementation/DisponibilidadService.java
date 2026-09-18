@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import com.rentar.dto.DisponibilidadFiltro;
 import com.rentar.dto.VehiculoDisponibleResponse;
 import com.rentar.entity.Vehiculo;
+import com.rentar.entity.enums.EstadoReserva;
 import com.rentar.exception.DisponibilidadInvalidaException;
+import com.rentar.repository.ReservaRepository;
 import com.rentar.repository.VehiculoRepository;
 import com.rentar.service.IDisponibilidadService;
 
@@ -16,9 +18,14 @@ import com.rentar.service.IDisponibilidadService;
 public class DisponibilidadService implements IDisponibilidadService {
 
     private final VehiculoRepository vehiculoRepository;
+    private final ReservaRepository reservaRepository;
 
-    public DisponibilidadService(VehiculoRepository vehiculoRepository) {
+    public DisponibilidadService(
+            VehiculoRepository vehiculoRepository,
+            ReservaRepository reservaRepository) {
+
         this.vehiculoRepository = vehiculoRepository;
+        this.reservaRepository = reservaRepository;
     }
 
     @Override
@@ -79,6 +86,15 @@ public class DisponibilidadService implements IDisponibilidadService {
                         filtro.getPrecioMax() == null
                         || vehiculo.getPrecioDiario()
                                 .compareTo(filtro.getPrecioMax()) <= 0)
+
+                // SOLO VEHICULOS SIN RESERVAS CONFIRMADAS
+                // QUE SE SOLAPEN CON EL PERIODO SOLICITADO
+                .filter(vehiculo ->
+                        !reservaRepository.existsSolapamiento(
+                                vehiculo.getId(),
+                                filtro.getFechaInicio(),
+                                filtro.getFechaFin(),
+                                EstadoReserva.CONFIRMADA))
 
                 // CONVERSION A DTO DE RESPUESTA
                 .map(this::mapToResponse)
