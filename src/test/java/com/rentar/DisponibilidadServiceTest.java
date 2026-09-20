@@ -36,10 +36,10 @@ class DisponibilidadServiceTest {
         DisponibilidadFiltro filtro = new DisponibilidadFiltro();
 
         filtro.setFechaInicio(
-                LocalDateTime.of(2026, 9, 20, 10, 0));
+                LocalDateTime.of(2026, 9, 21, 13, 0));
 
         filtro.setFechaFin(
-                LocalDateTime.of(2026, 9, 21, 10, 0));
+                LocalDateTime.of(2026, 9, 22, 13, 0));
 
         List<VehiculoDisponibleResponse> disponibles =
                 disponibilidadService.buscarDisponibles(filtro);
@@ -56,16 +56,16 @@ class DisponibilidadServiceTest {
         DisponibilidadFiltro filtro = new DisponibilidadFiltro();
 
         filtro.setFechaInicio(
-                LocalDateTime.of(2026, 9, 19, 10, 0));
+                LocalDateTime.of(2026, 9, 21, 13, 0));
 
         filtro.setFechaFin(
-                LocalDateTime.of(2026, 9, 20, 10, 0));
+                LocalDateTime.of(2026, 9, 22, 13, 0));
 
         List<VehiculoDisponibleResponse> disponibles =
                 disponibilidadService.buscarDisponibles(filtro);
 
         assertTrue(disponibles.stream()
-                .noneMatch(v -> v.getPatente().equals("ABC123")));
+                .noneMatch(v -> v.getPatente().equals("GHI789")));
     }
 
     // CONSULTA: vehiculo disponible aunque tenga una reserva cancelada
@@ -76,10 +76,10 @@ class DisponibilidadServiceTest {
         DisponibilidadFiltro filtro = new DisponibilidadFiltro();
 
         filtro.setFechaInicio(
-                LocalDateTime.of(2026, 9, 20, 10, 0));
+                LocalDateTime.of(2026, 9, 21, 13, 0));
 
         filtro.setFechaFin(
-                LocalDateTime.of(2026, 9, 21, 10, 0));
+                LocalDateTime.of(2026, 9, 22, 13, 0));
 
         filtro.setTipo(TipoVehiculo.PICKUP);
 
@@ -98,10 +98,10 @@ class DisponibilidadServiceTest {
         DisponibilidadFiltro filtro = new DisponibilidadFiltro();
 
         filtro.setFechaInicio(
-                LocalDateTime.of(2026, 9, 20, 10, 0));
+                LocalDateTime.of(2026, 9, 21, 13, 0));
 
         filtro.setFechaFin(
-                LocalDateTime.of(2026, 9, 21, 10, 0));
+                LocalDateTime.of(2026, 9, 22, 13, 0));
 
         filtro.setTipo(TipoVehiculo.SUV);
 
@@ -120,10 +120,10 @@ class DisponibilidadServiceTest {
         DisponibilidadFiltro filtro = new DisponibilidadFiltro();
 
         filtro.setFechaInicio(
-                LocalDateTime.of(2026, 9, 20, 10, 0));
+                LocalDateTime.of(2026, 9, 21, 13, 0));
 
         filtro.setFechaFin(
-                LocalDateTime.of(2026, 9, 21, 10, 0));
+                LocalDateTime.of(2026, 9, 22, 13, 0));
 
         filtro.setPrecioMin(new BigDecimal("45000"));
         filtro.setPrecioMax(new BigDecimal("60000"));
