@@ -66,20 +66,29 @@ class ReservaServiceTest {
                 reserva.getImporteTotal().compareTo(new BigDecimal("156000.00")));
     }
 
-    // ALTA: vehiculo ocupado (solapa con las reservas CONFIRMADA del vehiculo 1 en data.sql)
+    // ALTA: vehiculo ocupado (se crea una reserva y se intenta otra que se solapa con ella)
 
     @Test
     void crear_debeFallarSiVehiculoNoDisponibleEnElPeriodo() {
 
-        ReservaRequest request = new ReservaRequest();
-        request.setClienteId(1L);
-        request.setVehiculoId(1L); // Toyota Corolla, con reservas CONFIRMADA del 16 al 20/09 en data.sql
-        request.setFechaInicio(LocalDateTime.now().plusDays(1));
-        request.setFechaFin(LocalDateTime.now().plusDays(4));
+        LocalDateTime inicio = LocalDateTime.now().plusDays(20);
+
+        ReservaRequest primera = new ReservaRequest();
+        primera.setClienteId(1L);
+        primera.setVehiculoId(7L); // Peugeot RCZ, DISPONIBLE, sin reservas vigentes en data.sql
+        primera.setFechaInicio(inicio);
+        primera.setFechaFin(inicio.plusDays(4));
+        reservaService.crear(primera);
+
+        ReservaRequest solapada = new ReservaRequest();
+        solapada.setClienteId(2L);
+        solapada.setVehiculoId(7L);
+        solapada.setFechaInicio(inicio.plusDays(2));
+        solapada.setFechaFin(inicio.plusDays(6));
 
         assertThrows(
                 VehiculoNoDisponibleException.class,
-                () -> reservaService.crear(request));
+                () -> reservaService.crear(solapada));
     }
 
     // CANCELACION: caso feliz (reserva propia, todavia no comenzada)
