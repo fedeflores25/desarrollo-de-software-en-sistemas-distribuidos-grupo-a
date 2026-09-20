@@ -6,20 +6,24 @@ import {
   Search,
   Users,
 } from 'lucide-react';
+import { useState } from 'react';
+import { VehiculosPage } from './pages/VehiculosPage';
 
 const administrationItems = [
-  { label: 'Vehiculos', icon: CarFront },
-  { label: 'Clientes', icon: Users },
-  { label: 'Reservas', icon: CalendarDays },
+  { id: 'vehiculos', label: 'Vehiculos', icon: CarFront },
+  { id: 'clientes', label: 'Clientes', icon: Users },
+  { id: 'reservas', label: 'Reservas', icon: CalendarDays },
 ];
 
 const queryItems = [
-  { label: 'Disponibilidad', icon: Search },
-  { label: 'Consulta de reservas', icon: ClipboardList },
-  { label: 'Historial de alquileres', icon: ClipboardList },
+  { id: 'disponibilidad', label: 'Disponibilidad', icon: Search },
+  { id: 'consulta-reservas', label: 'Consulta de reservas', icon: ClipboardList },
+  { id: 'historial', label: 'Historial de alquileres', icon: ClipboardList },
 ];
 
 function App() {
+  const [activeModule, setActiveModule] = useState('inicio');
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -33,16 +37,28 @@ function App() {
 
         <nav className="sidebar-nav" aria-label="Navegacion principal">
           <span className="nav-section-label">Administracion</span>
-          {administrationItems.map(({ label, icon: Icon }) => (
-            <button className="nav-item" key={label} type="button">
+          {administrationItems.map(({ id, label, icon: Icon }) => (
+            <button
+              aria-current={activeModule === id ? 'page' : undefined}
+              className={activeModule === id ? 'nav-item nav-item-active' : 'nav-item'}
+              key={label}
+              onClick={() => setActiveModule(id)}
+              type="button"
+            >
               <Icon aria-hidden="true" size={18} />
               {label}
             </button>
           ))}
 
           <span className="nav-section-label">Consultas</span>
-          {queryItems.map(({ label, icon: Icon }) => (
-            <button className="nav-item" key={label} type="button">
+          {queryItems.map(({ id, label, icon: Icon }) => (
+            <button
+              aria-current={activeModule === id ? 'page' : undefined}
+              className={activeModule === id ? 'nav-item nav-item-active' : 'nav-item'}
+              key={label}
+              onClick={() => setActiveModule(id)}
+              type="button"
+            >
               <Icon aria-hidden="true" size={18} />
               {label}
             </button>
@@ -59,30 +75,34 @@ function App() {
           <LayoutDashboard aria-hidden="true" className="topbar-icon" size={24} />
         </header>
 
-        <section className="workspace" aria-labelledby="workspace-title">
-          <div className="workspace-heading">
-            <h2 id="workspace-title">Modulos disponibles</h2>
-            <p>Selecciona una opcion del menu para gestionar la informacion.</p>
-          </div>
+        {activeModule === 'vehiculos' ? (
+          <VehiculosPage />
+        ) : (
+          <section className="workspace" aria-labelledby="workspace-title">
+            <div className="workspace-heading">
+              <h2 id="workspace-title">Modulos disponibles</h2>
+              <p>Selecciona una opcion del menu para gestionar la informacion.</p>
+            </div>
 
-          <div className="module-grid">
-            <article className="module-card">
-              <CarFront aria-hidden="true" size={24} />
-              <h3>Vehiculos</h3>
-              <p>Administra la flota, sus datos y su estado.</p>
-            </article>
-            <article className="module-card">
-              <Users aria-hidden="true" size={24} />
-              <h3>Clientes</h3>
-              <p>Registra y mantiene los datos de los clientes.</p>
-            </article>
-            <article className="module-card">
-              <CalendarDays aria-hidden="true" size={24} />
-              <h3>Reservas</h3>
-              <p>Registra nuevas reservas y sus cancelaciones.</p>
-            </article>
-          </div>
-        </section>
+            <div className="module-grid">
+              <article className="module-card">
+                <CarFront aria-hidden="true" size={24} />
+                <h3>Vehiculos</h3>
+                <p>Administra la flota, sus datos y su estado.</p>
+              </article>
+              <article className="module-card">
+                <Users aria-hidden="true" size={24} />
+                <h3>Clientes</h3>
+                <p>Registra y mantiene los datos de los clientes.</p>
+              </article>
+              <article className="module-card">
+                <CalendarDays aria-hidden="true" size={24} />
+                <h3>Reservas</h3>
+                <p>Registra nuevas reservas y sus cancelaciones.</p>
+              </article>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
