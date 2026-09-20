@@ -20,6 +20,8 @@ import com.rentar.entity.Vehiculo;
 import com.rentar.service.IVehiculoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -75,6 +77,10 @@ public class VehiculoController {
     }
 
     @Operation(summary = "Dar de baja logica a un vehiculo")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Vehiculo dado de baja correctamente"),
+            @ApiResponse(responseCode = "404", description = "Vehiculo no encontrado")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> darDeBaja(@PathVariable Long id) {
         vehiculoService.darDeBajaVehiculo(id);
