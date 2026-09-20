@@ -7,6 +7,10 @@ import {
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
+import { ClientesPage } from './pages/ClientesPage';
+import { ConsultasPendientesPage } from './pages/ConsultasPendientesPage';
+import { DisponibilidadPage } from './pages/DisponibilidadPage';
+import { ReservasPage } from './pages/ReservasPage';
 import { VehiculosPage } from './pages/VehiculosPage';
 
 const administrationItems = [
@@ -75,9 +79,13 @@ function App() {
           <LayoutDashboard aria-hidden="true" className="topbar-icon" size={24} />
         </header>
 
-        {activeModule === 'vehiculos' ? (
-          <VehiculosPage />
-        ) : (
+        {activeModule === 'vehiculos' && <VehiculosPage />}
+        {activeModule === 'clientes' && <ClientesPage />}
+        {activeModule === 'reservas' && <ReservasPage />}
+        {activeModule === 'disponibilidad' && <DisponibilidadPage />}
+        {activeModule === 'consulta-reservas' && <ConsultasPendientesPage tipo="reservas" />}
+        {activeModule === 'historial' && <ConsultasPendientesPage tipo="historial" />}
+        {activeModule === 'inicio' && (
           <section className="workspace" aria-labelledby="workspace-title">
             <div className="workspace-heading">
               <h2 id="workspace-title">Modulos disponibles</h2>
