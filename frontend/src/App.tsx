@@ -27,7 +27,7 @@ function App() {
           <span className="brand-mark">R</span>
           <div>
             <strong>Rentar</strong>
-            <span>Gestion operativa</span>
+            <span>Gestion</span>
           </div>
         </div>
 
@@ -54,7 +54,7 @@ function App() {
         <header className="topbar">
           <div>
             <p className="eyebrow">Panel administrativo</p>
-            <h1>Operacion de Rentar</h1>
+            <h1>Gestion de Rentar</h1>
           </div>
           <LayoutDashboard aria-hidden="true" className="topbar-icon" size={24} />
         </header>
