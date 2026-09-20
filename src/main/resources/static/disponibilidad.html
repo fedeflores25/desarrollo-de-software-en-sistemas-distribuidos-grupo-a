@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Consulta de Disponibilidad - Rentar</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        /* ENCABEZADO */
+
+        .encabezado {
+            background-color: #1f3c5b;
+            color: white;
+            padding: 22px 40px;
+        }
+
+        .encabezado h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .encabezado p {
+            margin: 6px 0 0;
+            color: #d8e2ec;
+        }
+
+        /* CONTENIDO PRINCIPAL */
+
+        .contenedor {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* SECCIONES */
+
+        .seccion {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .seccion h2 {
+            margin-top: 0;
+            color: #1f3c5b;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 12px;
+        }
+
+        /* FORMULARIO */
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo label {
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .campo input,
+        .campo select {
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 15px;
+            background-color: white;
+        }
+
+        .campo input:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: #1f3c5b;
+        }
+
+        .acciones-formulario {
+            grid-column: 1 / -1;
+        }
+
+        /* BOTON */
+
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 11px 20px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .boton-buscar {
+            background-color: #1f3c5b;
+            color: white;
+        }
+
+        .boton-buscar:hover {
+            background-color: #162d45;
+        }
+
+        /* TABLA */
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #1f3c5b;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f7f9;
+        }
+
+        .mensaje {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        /* ADAPTACION A PANTALLAS CHICAS */
+
+        @media (max-width: 700px) {
+            .formulario {
+                grid-template-columns: 1fr;
+            }
+
+            .acciones-formulario {
+                grid-column: 1;
+            }
+
+            .encabezado {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ENCABEZADO -->
+
+    <header class="encabezado">
+        <h1>Rentar</h1>
+        <p>Consulta de disponibilidad de vehículos</p>
+    </header>
+
+    <main class="contenedor">
+
+        <!-- FORMULARIO DE BUSQUEDA -->
+
+        <section class="seccion">
+
+            <h2>Buscar vehículos disponibles</h2>
+
+            <form id="formDisponibilidad" class="formulario">
+
+                <div class="campo">
+                    <label for="tipo">Tipo</label>
+
+                    <select id="tipo">
+                        <option value="">Todos</option>
+                        <option value="SEDAN">Sedán</option>
+                        <option value="SUV">SUV</option>
+                        <option value="PICKUP">Pickup</option>
+                        <option value="COUPE">Coupé</option>
+                        <option value="HATCHBACK">Hatchback</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="marca">Marca</label>
+                    <input
+                        type="text"
+                        id="marca">
+                </div>
+
+                <div class="campo">
+                    <label for="modelo">Modelo</label>
+                    <input
+                        type="text"
+                        id="modelo">
+                </div>
+
+                <div class="campo">
+                    <label for="precioMin">Precio mínimo</label>
+                    <input
+                        type="number"
+                        id="precioMin"
+                        min="0">
+                </div>
+
+                <div class="campo">
+                    <label for="precioMax">Precio máximo</label>
+                    <input
+                        type="number"
+                        id="precioMax"
+                        min="0">
+                </div>
+
+                <div class="campo">
+                    <label for="fechaInicio">Fecha y hora de inicio</label>
+                    <input
+                        type="datetime-local"
+                        id="fechaInicio"
+                        required>
+                </div>
+
+                <div class="campo">
+                    <label for="fechaFin">Fecha y hora de fin</label>
+                    <input
+                        type="datetime-local"
+                        id="fechaFin"
+                        required>
+                </div>
+
+                <div class="acciones-formulario">
+                    <button
+                        type="submit"
+                        class="boton-buscar">
+                        Buscar disponibilidad
+                    </button>
+                </div>
+
+            </form>
+
+            <div
+                id="mensaje"
+                class="mensaje">
+            </div>
+
+        </section>
+
+        <!-- RESULTADOS -->
+
+        <section class="seccion">
+
+            <h2>Vehículos disponibles</h2>
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Año</th>
+                            <th>Color</th>
+                            <th>Tipo</th>
+                            <th>Precio diario</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaVehiculos">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        // CONSULTA DE DISPONIBILIDAD
+
+        document.getElementById('formDisponibilidad')
+            .addEventListener('submit', function(event) {
+
+                event.preventDefault();
+
+                const tipo =
+                    document.getElementById('tipo').value;
+
+                const marca =
+                    document.getElementById('marca').value.trim();
+
+                const modelo =
+                    document.getElementById('modelo').value.trim();
+
+                const precioMin =
+                    document.getElementById('precioMin').value;
+
+                const precioMax =
+                    document.getElementById('precioMax').value;
+
+                const fechaInicio =
+                    document.getElementById('fechaInicio').value;
+
+                const fechaFin =
+                    document.getElementById('fechaFin').value;
+
+
+                // ARMADO DE LOS FILTROS OPCIONALES
+
+                let filtros = '';
+
+                if (tipo !== '') {
+                    filtros += `tipo: ${tipo}, `;
+                }
+
+                if (marca !== '') {
+                    filtros += `marca: ${JSON.stringify(marca)}, `;
+                }
+
+                if (modelo !== '') {
+                    filtros += `modelo: ${JSON.stringify(modelo)}, `;
+                }
+
+                if (precioMin !== '') {
+                    filtros += `precioMin: ${precioMin}, `;
+                }
+
+                if (precioMax !== '') {
+                    filtros += `precioMax: ${precioMax}, `;
+                }
+
+                filtros +=
+                    `fechaInicio: ${JSON.stringify(fechaInicio)}, ` +
+                    `fechaFin: ${JSON.stringify(fechaFin)}`;
+
+
+                // CONSULTA GRAPHQL
+
+                const query = `
+                    query {
+                        vehiculosDisponibles(
+                            filtro: {
+                                ${filtros}
+                            }
+                        ) {
+                            patente
+                            marca
+                            modelo
+                            anio
+                            color
+                            tipo
+                            precioDiario
+                        }
+                    }
+                `;
+
+
+                fetch('/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query
+                    })
+                })
+
+                .then(response => response.json())
+
+                .then(resultado => {
+
+                    const mensaje =
+                        document.getElementById('mensaje');
+
+                    const tabla =
+                        document.getElementById('tablaVehiculos');
+
+                    tabla.innerHTML = '';
+                    mensaje.textContent = '';
+
+
+                    // ERROR DEVUELTO POR GRAPHQL
+
+                    if (resultado.errors) {
+
+                        mensaje.textContent =
+                            resultado.errors[0].message;
+
+                        return;
+                    }
+
+
+                    const vehiculos =
+                        resultado.data.vehiculosDisponibles;
+
+
+                    // SIN RESULTADOS
+
+                    if (vehiculos.length === 0) {
+
+                        mensaje.textContent =
+                            'No se encontraron vehículos disponibles';
+
+                        return;
+                    }
+
+
+                    // MOSTRAR RESULTADOS
+
+                    vehiculos.forEach(vehiculo => {
+
+                        const fila =
+                            document.createElement('tr');
+
+                        fila.innerHTML = `
+                            <td>${vehiculo.patente}</td>
+                            <td>${vehiculo.marca}</td>
+                            <td>${vehiculo.modelo}</td>
+                            <td>${vehiculo.anio}</td>
+                            <td>${vehiculo.color ?? ''}</td>
+                            <td>${vehiculo.tipo}</td>
+                            <td>${vehiculo.precioDiario}</td>
+                        `;
+
+                        tabla.appendChild(fila);
+                    });
+
+                })
+
+                .catch(() => {
+
+                    document.getElementById('mensaje')
+                        .textContent =
+                        'No se pudo realizar la consulta';
+
+                });
+
+            });
+
+    </script>
+
+</body>
+
+</html>
