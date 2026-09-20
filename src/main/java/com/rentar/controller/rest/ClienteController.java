@@ -20,6 +20,7 @@ import com.rentar.entity.Cliente;
 import com.rentar.service.IClienteService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -42,7 +43,17 @@ public class ClienteController {
 
     @Operation(
         summary = "Registrar un nuevo cliente",
-        description = "Da de alta un cliente en el sistema con estado activo"
+        description = "Da de alta un cliente en el sistema con estado activo",
+        responses = {
+            @ApiResponse(
+                responseCode = "201",
+                description = "Cliente registrado correctamente"
+            ),
+            @ApiResponse(
+                responseCode = "409",
+                description = "Ya existe un cliente con el documento o email ingresado"
+            )
+        }
     )
     @PostMapping
     public ResponseEntity<ClienteResponse> crear(
@@ -59,7 +70,13 @@ public class ClienteController {
 
     @Operation(
         summary = "Listar todos los clientes",
-        description = "Obtiene el listado completo de clientes activos e inactivos"
+        description = "Obtiene el listado completo de clientes activos e inactivos",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Clientes obtenidos correctamente"
+            )
+        }
     )
     @GetMapping
     public ResponseEntity<List<ClienteResponse>> listar() {
@@ -76,7 +93,17 @@ public class ClienteController {
 
     @Operation(
         summary = "Buscar un cliente por ID",
-        description = "Obtiene los datos de un cliente utilizando su identificador"
+        description = "Obtiene los datos de un cliente utilizando su identificador",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Cliente encontrado correctamente"
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Cliente no encontrado"
+            )
+        }
     )
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponse> buscarPorId(
@@ -93,7 +120,21 @@ public class ClienteController {
 
     @Operation(
         summary = "Modificar un cliente",
-        description = "Modifica los datos de un cliente existente"
+        description = "Modifica los datos de un cliente existente",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Cliente modificado correctamente"
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Cliente no encontrado"
+            ),
+            @ApiResponse(
+                responseCode = "409",
+                description = "El documento o email ingresado ya pertenece a otro cliente"
+            )
+        }
     )
     @PutMapping("/{id}")
     public ResponseEntity<ClienteResponse> modificar(
@@ -111,7 +152,17 @@ public class ClienteController {
 
     @Operation(
         summary = "Dar de baja lógica a un cliente",
-        description = "Marca al cliente como inactivo sin eliminarlo de la base de datos"
+        description = "Marca al cliente como inactivo sin eliminarlo de la base de datos",
+        responses = {
+            @ApiResponse(
+                responseCode = "204",
+                description = "Cliente dado de baja correctamente"
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Cliente no encontrado"
+            )
+        }
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> darDeBaja(
