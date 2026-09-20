@@ -612,3 +612,161 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Palette aligned with the original availability screen. */
+:root {
+  color: #333333;
+  background: #f4f6f8;
+}
+
+body,
+.app-shell {
+  background: #f4f6f8;
+}
+
+.sidebar,
+.topbar {
+  border-color: #162d45;
+  background: #1f3c5b;
+}
+
+.brand,
+.sidebar {
+  border-color: #274d72;
+}
+
+.brand-mark {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.brand strong,
+.brand div span,
+.nav-item,
+h1,
+.topbar-icon {
+  color: #ffffff;
+}
+
+.nav-section-label {
+  color: #d8e2ec;
+}
+
+.nav-item:hover,
+.nav-item:focus-visible,
+.nav-item-active {
+  border-left-color: #ffffff;
+  background: #162d45;
+  color: #ffffff;
+}
+
+.eyebrow {
+  color: #1f3c5b;
+}
+
+.workspace-heading h2,
+.page-heading h2,
+.form-panel-heading h3,
+.confirmation-dialog h3 {
+  color: #1f3c5b;
+}
+
+.workspace-heading p,
+.module-card p,
+.page-heading p:not(.eyebrow),
+.form-panel-heading p,
+.confirmation-dialog p {
+  color: #5b6470;
+}
+
+.workspace-heading,
+.form-panel-heading {
+  border-color: #dddddd;
+}
+
+.module-card,
+.page-heading,
+.toolbar,
+.feedback-message,
+.data-table-wrapper,
+.form-panel,
+.confirmation-dialog {
+  border-color: #dddddd;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.primary-button {
+  border-color: #1f3c5b;
+  background: #1f3c5b;
+  color: #ffffff;
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  background: #162d45;
+  outline-color: #1f3c5b;
+}
+
+.secondary-button,
+.icon-button {
+  border-color: #1f3c5b;
+  background: #ffffff;
+  color: #1f3c5b;
+}
+
+.search-field,
+.form-field input,
+.form-field select {
+  border-color: #bbbbbb;
+  background: #ffffff;
+  color: #333333;
+}
+
+.form-field select option {
+  background: #ffffff;
+  color: #333333;
+}
+
+.search-field:focus-within,
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #1f3c5b;
+}
+
+.search-field input {
+  color: #333333;
+}
+
+.search-field input::placeholder {
+  color: #6d7680;
+}
+
+.form-field,
+.data-table th,
+.data-table td,
+.feedback-message {
+  color: #333333;
+}
+
+.data-table th {
+  border-color: #1f3c5b;
+  background: #1f3c5b;
+  color: #ffffff;
+}
+
+.data-table td {
+  border-color: #dddddd;
+}
+
+.data-table tbody tr:hover {
+  background: #f5f7f9;
+}
+
+.table-strong {
+  color: #1f3c5b !important;
+}
+
+.modal-backdrop {
+  background: rgba(22, 45, 69, 0.5);
+}
