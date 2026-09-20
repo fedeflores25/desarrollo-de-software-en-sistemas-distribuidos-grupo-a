@@ -38,6 +38,32 @@ public class GlobalExceptionHandler {
                 .body(respuesta);
     }
 
+    // PATENTE DUPLICADA
+    @ExceptionHandler(PatenteDuplicadaException.class)
+    public ResponseEntity<Map<String, String>> manejarPatenteDuplicada(
+            PatenteDuplicadaException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(respuesta);
+    }
+
+    // VEHICULO NO ENCONTRADO
+    @ExceptionHandler(VehiculoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> manejarVehiculoNoEncontrado(
+            VehiculoNoEncontradoException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(respuesta);
+    }
+
     // ERRORES DE VALIDACION
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> manejarValidaciones(
