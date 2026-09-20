@@ -1,12 +1,13 @@
 package com.rentar.service.implementation;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
 
 import com.rentar.entity.Vehiculo;
 import com.rentar.entity.enums.EstadoVehiculo;
+import com.rentar.exception.PatenteDuplicadaException;
+import com.rentar.exception.VehiculoNoEncontradoException;
 import com.rentar.repository.VehiculoRepository;
 import com.rentar.service.IVehiculoService;
 
@@ -25,7 +26,7 @@ public class VehiculoService implements IVehiculoService {
     @Override
     public Vehiculo crearVehiculo(Vehiculo vehiculo) {
         if (vehiculoRepository.existsByPatente(vehiculo.getPatente())) {
-            throw new IllegalArgumentException(
+            throw new PatenteDuplicadaException(
                     "Ya existe un vehiculo con la patente " + vehiculo.getPatente());
         }
 
@@ -44,7 +45,7 @@ public class VehiculoService implements IVehiculoService {
     @Override
     public Vehiculo buscarVehiculoPorId(Long id) {
         return vehiculoRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(
+                .orElseThrow(() -> new VehiculoNoEncontradoException(
                         "No existe un vehiculo con id " + id));
     }
 
