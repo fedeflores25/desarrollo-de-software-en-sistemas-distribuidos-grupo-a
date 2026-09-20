@@ -84,4 +84,69 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errores);
     }
+
+    // RESERVA NO ENCONTRADA
+    @ExceptionHandler(ReservaNoEncontradaException.class)
+    public ResponseEntity<Map<String, String>> manejarReservaNoEncontrada(
+            ReservaNoEncontradaException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(respuesta);
+    }
+
+    // CLIENTE O VEHICULO INACTIVO
+    @ExceptionHandler({ClienteInactivoException.class, VehiculoInactivoException.class})
+    public ResponseEntity<Map<String, String>> manejarInactivo(
+            RuntimeException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(respuesta);
+    }
+
+    // VEHICULO NO DISPONIBLE EN EL PERIODO SOLICITADO
+    @ExceptionHandler(VehiculoNoDisponibleException.class)
+    public ResponseEntity<Map<String, String>> manejarVehiculoNoDisponible(
+            VehiculoNoDisponibleException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(respuesta);
+    }
+
+    // DATOS DE RESERVA INVALIDOS (regla de negocio, ej: fechas)
+    @ExceptionHandler(ReservaInvalidaException.class)
+    public ResponseEntity<Map<String, String>> manejarReservaInvalida(
+            ReservaInvalidaException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(respuesta);
+    }
+
+    // ESTADO DE RESERVA NO PERMITE LA OPERACION (ej: cancelar una ya comenzada)
+    @ExceptionHandler(ReservaEstadoInvalidoException.class)
+    public ResponseEntity<Map<String, String>> manejarReservaEstadoInvalido(
+            ReservaEstadoInvalidoException ex) {
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(respuesta);
+    }
 }
