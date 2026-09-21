@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.rentar.entity.Reserva;
 import com.rentar.entity.enums.EstadoReserva;
 
+
 /** Repositorio de acceso a datos para la entidad Reserva. */
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
@@ -34,4 +35,16 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin,
             @Param("estado") EstadoReserva estado);
+
+        // Busca reservas de un cliente específico cuyos estados coincidan con los de la lista
+    List<Reserva> findByClienteIdAndEstadoIn(Long clienteId, List<EstadoReserva> estados);  
+
+    List<Reserva> findByEstadoIn(List<EstadoReserva> estados);
+
+      
 }
+
+
+
+    
+    

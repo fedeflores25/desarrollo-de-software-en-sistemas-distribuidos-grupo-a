@@ -29,9 +29,23 @@ input DisponibilidadFiltro {
     fechaFin: String!
 }
 
+type HistorialResponse {
+    vehiculo: String
+    patente: String
+    fechaInicio: String
+    fechaFinalizacion: String
+    cantidadDias: Int
+    importeTotal: Float
+    estado: String
+}
 type Query {
     """Consulta vehiculos activos y disponibles durante el periodo indicado."""
     vehiculosDisponibles(
         filtro: DisponibilidadFiltro!
     ): [VehiculoDisponible!]!
+
+     """Historial de alquileres"""
+consultarHistorialAlquileres: [HistorialResponse]
+
 }
+
