@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.rentar.entity.Reserva;
 import com.rentar.entity.enums.EstadoReserva;
-
+import com.rentar.entity.enums.TipoVehiculo;
 
 /** Repositorio de acceso a datos para la entidad Reserva. */
 @Repository
@@ -41,6 +41,21 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     List<Reserva> findByEstadoIn(List<EstadoReserva> estados);
 
+    @Query("SELECT r FROM Reserva r WHERE " +
+       "(:clienteId IS NULL OR r.cliente.id = :clienteId) AND " +
+       "(:vehiculoId IS NULL OR r.vehiculo.id = :vehiculoId) AND " +
+       "(:tipoVehiculo IS NULL OR r.vehiculo.tipo = :tipoVehiculo) AND " +
+       "(:estado IS NULL OR r.estado = :estado) AND " +
+       "(cast(:fechaInicio as java.time.LocalDateTime) IS NULL OR r.fechaInicio >= :fechaInicio) AND " +
+       "(cast(:fechaFin as java.time.LocalDateTime) IS NULL OR r.fechaFin <= :fechaFin)")
+List<Reserva> buscarConFiltrosDinamicos(
+        @Param("clienteId") Long clienteId,
+        @Param("vehiculoId") Long vehiculoId,
+        @Param("tipoVehiculo") TipoVehiculo tipoVehiculo,
+        @Param("estado") EstadoReserva estado,
+        @Param("fechaInicio") LocalDateTime fechaInicio,
+        @Param("fechaFin") LocalDateTime fechaFin
+);
       
 }
 

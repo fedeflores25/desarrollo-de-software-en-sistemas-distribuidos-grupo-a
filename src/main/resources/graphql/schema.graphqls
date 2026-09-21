@@ -38,14 +38,41 @@ type HistorialResponse {
     importeTotal: Float
     estado: String
 }
+
+# 1. El objeto de respuesta (Lo que le devolvemos al frontend)
+type ConsultaReservaResponse {
+    cliente: String
+    vehiculo: String
+    patente: String
+    fechaInicio: String
+    fechaFinalizacion: String
+    precioDiario: Float
+    importeTotal: Float
+    estado: String
+}
+
+# 2. El objeto de filtros opcionales (Lo que nos envía el frontend)
+input ReservaFiltro {
+    clienteId: ID
+    vehiculoId: ID
+    tipoVehiculo: String
+    estado: String
+    fechaInicio: String
+    fechaFin: String
+}
+
+
 type Query {
     """Consulta vehiculos activos y disponibles durante el periodo indicado."""
     vehiculosDisponibles(
         filtro: DisponibilidadFiltro!
     ): [VehiculoDisponible!]!
 
-     """Historial de alquileres"""
-consultarHistorialAlquileres: [HistorialResponse]
+    """Historial de alquileres"""
+    consultarHistorialAlquileres: [HistorialResponse]
+
+    """Consulta de reservas realizadas"""
+    consultarReservas(filtro: ReservaFiltro): [ConsultaReservaResponse]
 
 }
 
