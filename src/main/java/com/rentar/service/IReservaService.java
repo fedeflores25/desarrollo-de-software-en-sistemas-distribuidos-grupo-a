@@ -12,4 +12,8 @@ public interface IReservaService {
     Reserva cancelar(Long id);
 
     Reserva buscarPorId(Long id);
+
+    
 }
+
+
