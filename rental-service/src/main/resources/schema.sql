@@ -1,5 +1,7 @@
 -- Base propia del Rental Service: rentar_reservas
 -- Guarda solo los ids de cliente y vehiculo (sin foreign keys entre servicios).
+-- Los indices van dentro del CREATE TABLE para que el script se pueda ejecutar
+-- mas de una vez (MySQL no admite CREATE INDEX IF NOT EXISTS).
 CREATE TABLE IF NOT EXISTS reserva (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     cliente_id BIGINT NOT NULL,
@@ -16,9 +18,8 @@ CREATE TABLE IF NOT EXISTS reserva (
     CONSTRAINT chk_reserva_fechas CHECK (fecha_fin > fecha_inicio),
     CONSTRAINT chk_reserva_precio CHECK (precio_diario > 0),
     CONSTRAINT chk_reserva_dias CHECK (cantidad_dias > 0),
-    CONSTRAINT chk_reserva_total CHECK (importe_total > 0)
+    CONSTRAINT chk_reserva_total CHECK (importe_total > 0),
+    INDEX idx_reserva_cliente (cliente_id),
+    INDEX idx_reserva_vehiculo_fechas (vehiculo_id, fecha_inicio, fecha_fin),
+    INDEX idx_reserva_estado (estado)
 );
-
-CREATE INDEX idx_reserva_cliente ON reserva (cliente_id);
-CREATE INDEX idx_reserva_vehiculo_fechas ON reserva (vehiculo_id, fecha_inicio, fecha_fin);
-CREATE INDEX idx_reserva_estado ON reserva (estado);
