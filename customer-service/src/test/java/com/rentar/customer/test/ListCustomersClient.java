@@ -28,7 +28,7 @@ public class ListCustomersClient {
                     .newBlockingStub(canal)
                     .withDeadlineAfter(5, TimeUnit.SECONDS);
 
-            // Solicitar solamente el cliente con ID 2
+            // Solicitar solamente el cliente con ID 1
             ListCustomersRequest solicitud =
                     ListCustomersRequest.newBuilder()
                             .addIds(1L)

@@ -226,11 +226,11 @@ class CustomerGrpcServiceTest {
         Cliente ana = crearCliente(
                 1L, "90000001", "Ana", true);
 
-        Cliente benjamin = crearCliente(
-                2L, "90000002", "Benjamin", false);
+        Cliente bruno = crearCliente(
+                2L, "90000002", "Bruno", false);
 
         when(clienteService.listar())
-                .thenReturn(List.of(ana, benjamin));
+                .thenReturn(List.of(ana, bruno));
 
         StreamObserver<ListCustomersResponse> observer =
                 crearObserver();
@@ -257,7 +257,7 @@ class CustomerGrpcServiceTest {
                 respuesta.getClientes(0).getNombre());
 
         assertEquals(
-                "Benjamin",
+                "Bruno",
                 respuesta.getClientes(1).getNombre());
 
         assertTrue(respuesta.getClientes(0).getActivo());
@@ -274,11 +274,11 @@ class CustomerGrpcServiceTest {
         Cliente ana = crearCliente(
                 1L, "90000001", "Ana", true);
 
-        Cliente benjamin = crearCliente(
-                2L, "90000002", "Benjamin", false);
+        Cliente bruno = crearCliente(
+                2L, "90000002", "Bruno", false);
 
         when(clienteService.listar())
-                .thenReturn(List.of(ana, benjamin));
+                .thenReturn(List.of(ana, bruno));
 
         StreamObserver<ListCustomersResponse> observer =
                 crearObserver();
@@ -318,11 +318,11 @@ class CustomerGrpcServiceTest {
         Cliente ana = crearCliente(
                 1L, "90000001", "Ana", true);
 
-        Cliente benjamin = crearCliente(
-                2L, "90000002", "Benjamin", false);
+        Cliente bruno = crearCliente(
+                2L, "90000002", "Bruno", false);
 
         when(clienteService.listar())
-                .thenReturn(List.of(ana, benjamin));
+                .thenReturn(List.of(ana, bruno));
 
         StreamObserver<ListCustomersResponse> observer =
                 crearObserver();
@@ -350,7 +350,7 @@ class CustomerGrpcServiceTest {
                 respuesta.getClientes(0).getId());
 
         assertEquals(
-                "Benjamin",
+                "Bruno",
                 respuesta.getClientes(0).getNombre());
 
         assertFalse(respuesta.getClientes(0).getActivo());
