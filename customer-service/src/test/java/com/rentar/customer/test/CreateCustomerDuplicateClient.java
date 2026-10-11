@@ -11,7 +11,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
-public class CreateCustomerClient {
+public class CreateCustomerDuplicateClient {
 
     public static void main(String[] args) {
 
@@ -28,7 +28,7 @@ public class CreateCustomerClient {
                     .newBlockingStub(canal)
                     .withDeadlineAfter(5, TimeUnit.SECONDS);
 
-            // Preparar un nuevo cliente con un email ya registrado
+            // Preparar un cliente con un email ya registrado
             CreateCustomerRequest solicitud =
                     CreateCustomerRequest.newBuilder()
                             .setDocumento("90000004")
@@ -48,7 +48,7 @@ public class CreateCustomerClient {
             Customer respuesta =
                     clienteGrpc.createCustomer(solicitud);
 
-            // Resultado incorrecto: el registro fue aceptado
+            // Resultado incorrecto: registro aceptado
             System.out.println("=== PRUEBA FALLIDA ===");
             System.out.println("El cliente fue registrado.");
             System.out.println("El servidor no rechazo el email duplicado.");
@@ -60,9 +60,10 @@ public class CreateCustomerClient {
 
             if (e.getStatus().getCode() == Status.Code.ALREADY_EXISTS
                     && e.getStatus().getDescription() != null
-                    && e.getStatus().getDescription().contains("email")) {
+                    && e.getStatus().getDescription()
+                            .toLowerCase().contains("email")) {
 
-                // Resultado esperado: rechazar el email duplicado
+                // Resultado esperado: email duplicado
                 System.out.println("=== PRUEBA EXITOSA ===");
                 System.out.println("Registro rechazado correctamente.");
                 System.out.println("Motivo: el email ya pertenece a otro cliente.");
@@ -70,7 +71,6 @@ public class CreateCustomerClient {
 
             } else {
 
-                // Mostrar un error diferente al esperado
                 System.out.println("=== PRUEBA FALLIDA ===");
                 System.out.println("El servidor devolvio un error inesperado.");
                 System.out.println("Detalle: " + e.getStatus());
