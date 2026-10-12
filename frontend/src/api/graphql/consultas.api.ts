@@ -14,6 +14,7 @@ interface GraphQLResponse<T> {
 const CONSULTAR_RESERVAS_QUERY = `
   query ConsultarReservas($filtro: ReservaFiltroInput) {
     reservas(filtro: $filtro) {
+      id
       cliente
       vehiculo
       patente
