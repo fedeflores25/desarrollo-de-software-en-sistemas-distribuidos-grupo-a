@@ -39,7 +39,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:mysql://localhost:3306/rentar_clientes_integracion",
+        "spring.datasource.url=jdbc:mysql://localhost:3306/rentar_clientes_integracion?createDatabaseIfNotExist=true",
         "customer.grpc.port=0"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
