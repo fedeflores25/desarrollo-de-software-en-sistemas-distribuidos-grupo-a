@@ -26,7 +26,7 @@ const queryItems = [
 ];
 
 function App() {
-  const [activeModule, setActiveModule] = useState('inicio');
+  const [activeModule, setActiveModule] = useState('vehiculos');
 
   return (
     <div className="app-shell">
