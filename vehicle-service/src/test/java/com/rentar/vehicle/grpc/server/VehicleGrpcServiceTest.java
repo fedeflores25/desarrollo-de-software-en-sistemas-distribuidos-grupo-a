@@ -21,6 +21,7 @@ import com.rentar.vehicle.entity.enums.EstadoVehiculo;
 import com.rentar.vehicle.entity.enums.TipoVehiculo;
 import com.rentar.vehicle.exception.PatenteDuplicadaException;
 import com.rentar.vehicle.grpc.CreateVehicleRequest;
+import com.rentar.vehicle.grpc.GetVehicleByPatenteRequest;
 import com.rentar.vehicle.grpc.GetVehicleRequest;
 import com.rentar.vehicle.grpc.ListAvailableVehiclesRequest;
 import com.rentar.vehicle.grpc.ListVehiclesResponse;
@@ -52,6 +53,21 @@ class VehicleGrpcServiceTest {
         assertEquals("ABC123", response.getPatente());
         assertEquals(VehicleType.SEDAN, response.getTipo());
         assertEquals(EstadoVehiculo.DISPONIBLE.name(), response.getEstado().name());
+        assertNotNull(observer.completed);
+    }
+
+    @Test
+    void getVehicleByPatenteMapsTheDomainVehicleToTheGrpcResponse() {
+        when(vehicleService.getByPatente("ABC123")).thenReturn(vehicle(1L));
+        VehicleGrpcService grpcService = new VehicleGrpcService(vehicleService);
+        TestObserver<Vehicle> observer = new TestObserver<>();
+
+        grpcService.getVehicleByPatente(
+                GetVehicleByPatenteRequest.newBuilder().setPatente("ABC123").build(), observer);
+
+        assertEquals(1, observer.values.size());
+        assertEquals("ABC123", observer.values.getFirst().getPatente());
+        verify(vehicleService).getByPatente("ABC123");
         assertNotNull(observer.completed);
     }
 

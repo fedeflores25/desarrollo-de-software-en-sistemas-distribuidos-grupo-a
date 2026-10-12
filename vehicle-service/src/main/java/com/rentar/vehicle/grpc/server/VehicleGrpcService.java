@@ -19,6 +19,7 @@ import com.rentar.vehicle.exception.VehiculoNoEncontradoException;
 import com.rentar.vehicle.grpc.CreateVehicleRequest;
 import com.rentar.vehicle.grpc.DeactivateVehicleRequest;
 import com.rentar.vehicle.grpc.GetVehicleRequest;
+import com.rentar.vehicle.grpc.GetVehicleByPatenteRequest;
 import com.rentar.vehicle.grpc.ListAvailableVehiclesRequest;
 import com.rentar.vehicle.grpc.ListVehiclesRequest;
 import com.rentar.vehicle.grpc.ListVehiclesResponse;
@@ -72,6 +73,18 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
             GetVehicleRequest request,
             StreamObserver<Vehicle> responseObserver) {
         respond(responseObserver, () -> toGrpcVehicle(vehicleService.getById(request.getId())));
+    }
+
+    @Override
+    public void getVehicleByPatente(
+            GetVehicleByPatenteRequest request,
+            StreamObserver<Vehicle> responseObserver) {
+        respond(responseObserver, () -> {
+            if (request.getPatente().isBlank()) {
+                throw new IllegalArgumentException("La patente es obligatoria");
+            }
+            return toGrpcVehicle(vehicleService.getByPatente(request.getPatente()));
+        });
     }
 
     @Override
