@@ -34,7 +34,7 @@ export function VehiculoTable({
             <th>Patente</th>
             <th>Vehiculo</th>
             <th>Tipo</th>
-            <th>Anio</th>
+            <th>Año</th>
             <th>Precio diario</th>
             <th>Estado</th>
             <th>Activo</th>

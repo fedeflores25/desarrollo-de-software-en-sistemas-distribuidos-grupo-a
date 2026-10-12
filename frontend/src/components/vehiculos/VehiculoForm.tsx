@@ -98,7 +98,7 @@ export function VehiculoForm({ vehiculo, error, submitting, onCancel, onSubmit }
           <input onChange={(event) => updateField('modelo', event.target.value)} required value={form.modelo} />
         </label>
         <label className="form-field">
-          <span>Anio</span>
+          <span>Año</span>
           <input
             min="1900"
             onChange={(event) => updateField('anio', event.target.value)}

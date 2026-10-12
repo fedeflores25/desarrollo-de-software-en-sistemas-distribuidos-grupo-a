@@ -104,7 +104,7 @@ export function DisponibilidadPage() {
       {resultados && resultados.length > 0 && (
         <div className="data-table-wrapper">
           <table className="data-table">
-            <thead><tr><th>Patente</th><th>Vehiculo</th><th>Tipo</th><th>Anio</th><th>Color</th><th>Precio diario</th></tr></thead>
+            <thead><tr><th>Patente</th><th>Vehiculo</th><th>Tipo</th><th>Año</th><th>Color</th><th>Precio diario</th></tr></thead>
             <tbody>
               {resultados.map((vehiculo) => (
                 <tr key={vehiculo.patente}>
