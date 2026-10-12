@@ -33,6 +33,19 @@ const schemaString = `
     precio_min: Float
     precio_max: Float
   }
+
+  """Periodo obligatorio y filtros opcionales para consultar disponibilidad."""
+  input DisponibilidadFiltroInput {
+    """Fecha y hora ISO-8601 de inicio del periodo."""
+    fecha_inicio: String!
+    """Fecha y hora ISO-8601 de fin del periodo."""
+    fecha_fin: String!
+    tipo: TipoVehiculo
+    marca: String
+    modelo: String
+    precio_min: Float
+    precio_max: Float
+  }
 `;
 
 const rootValue = {
@@ -41,9 +54,6 @@ const rootValue = {
     
     // Acá conectamos la orquestación real que armamos antes
     vehiculosDisponibles: async ({ filtro }) => {
-        if (!filtro || !filtro.fecha_inicio || !filtro.fecha_fin) {
-            throw new Error("Las fechas de inicio y fin son obligatorias para la disponibilidad");
-        }
         return await rentalService.checkAvailability(filtro);
     }
 };

@@ -49,16 +49,18 @@ async function createReservation(data) {
 
 // --- EL FLUJO DE DISPONIBILIDAD 
 async function checkAvailability(filtro) {
+    const { fecha_inicio, fecha_fin, ...vehicleFilter } = filtro;
+
     // 1. Gateway -> RentalService.GetBusyVehicleIds
     const ocupados = await callGrpc('GetBusyVehicleIds', { 
-        fecha_inicio: filtro.fecha_inicio, 
-        fecha_fin: filtro.fecha_fin 
+        fecha_inicio,
+        fecha_fin
     });
     
     const blacklist = ocupados.vehiculo_ids || [];
 
     // 2. Gateway -> VehicleService.ListAvailableVehicles (pasándole la lista negra)
-    return await vehicleService.listAvailableVehicles(filtro, blacklist);
+    return await vehicleService.listAvailableVehicles(vehicleFilter, blacklist);
 }
 
 // --- OTROS MÉTODOS LINEALES ---
