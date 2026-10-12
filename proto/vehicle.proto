@@ -53,9 +53,6 @@ service VehicleService {
   // Devuelve un vehiculo por id. NOT_FOUND si no existe.
   rpc GetVehicle(GetVehicleRequest) returns (Vehicle);
 
-  // Definicion duplicada conservada como referencia del contrato compartido.
-  // rpc GetVehicleByPatente(GetVehicleByPatenteRequest) returns (Vehicle);
-
   // Devuelve un vehiculo por patente. NOT_FOUND si no existe.
   rpc GetVehicleByPatente(GetVehicleByPatenteRequest) returns (Vehicle);
 
@@ -101,10 +98,6 @@ message ListVehiclesResponse {
 message GetVehicleRequest {
   int64 id = 1;
 }
-
-// message GetVehicleByPatenteRequest {
-//   string patente = 1;
-// }
 
 message GetVehicleByPatenteRequest {
   string patente = 1;
