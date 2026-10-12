@@ -1,0 +1,113 @@
+// Contrato del Rental Service (Hito 2 - RPC).
+//
+// Responsabilidades: crear y cancelar reservas, consultarlas, historial de
+// alquileres y control de solapamiento de periodos. Guarda solo los ids de cliente
+// y vehiculo (sin foreign keys): el Gateway es quien completa esos datos llamando
+// al Customer Service y al Vehicle Service.
+//
+// Fechas: string ISO-8601 sin zona horaria, ej: "2026-10-05T10:00:00".
+//
+// Errores (codigos gRPC):
+//   NOT_FOUND            la reserva no existe
+//   INVALID_ARGUMENT     fechas invalidas (fin no posterior a inicio, inicio no futuro)
+//   FAILED_PRECONDITION  el vehiculo esta ocupado en ese periodo, o la reserva no se
+//                        puede cancelar (no esta CONFIRMADA o su periodo ya comenzo)
+syntax = "proto3";
+
+package rentar.rental.v1;
+
+option java_multiple_files = true;
+option java_package = "com.rentar.rental.grpc";
+
+enum ReservationStatus {
+  RESERVATION_STATUS_UNSPECIFIED = 0;
+  CONFIRMADA = 1;
+  CANCELADA = 2;
+  FINALIZADA = 3;
+}
+
+message Reservation {
+  int64 id = 1;
+  int64 cliente_id = 2;
+  int64 vehiculo_id = 3;
+  string fecha_inicio = 4;
+  string fecha_fin = 5;
+  // Copia del precio diario del vehiculo al momento de reservar.
+  double precio_diario = 6;
+  int32 cantidad_dias = 7;
+  double importe_total = 8;
+  ReservationStatus estado = 9;
+  string fecha_alta = 10;
+  // Vacio si la reserva no fue cancelada.
+  string fecha_cancelacion = 11;
+}
+
+service RentalService {
+  // Crea la reserva en estado CONFIRMADA. El Gateway ya verifico antes que el cliente
+  // y el vehiculo existen y estan activos, y manda el precio diario del vehiculo.
+  // Este servicio valida las fechas, el solapamiento y calcula dias e importe.
+  rpc CreateReservation(CreateReservationRequest) returns (Reservation);
+
+  // Pasa la reserva a CANCELADA sin eliminarla (solo si esta CONFIRMADA y todavia
+  // no comenzo). Libera el periodo para nuevas reservas.
+  rpc CancelReservation(CancelReservationRequest) returns (Reservation);
+
+  // NOT_FOUND si no existe.
+  rpc GetReservation(GetReservationRequest) returns (Reservation);
+
+  // Lista reservas con filtros opcionales. Para un cliente, el Gateway fuerza
+  // cliente_id con el suyo. Para filtrar por tipo de vehiculo, el Gateway le pide los
+  // ids al Vehicle Service y los manda en vehiculo_ids.
+  rpc ListReservations(ListReservationsRequest) returns (ListReservationsResponse);
+
+  // Historial de un cliente: reservas finalizadas y canceladas. Se considera
+  // finalizada una reserva CONFIRMADA cuya fecha_fin ya paso.
+  rpc GetRentalHistory(GetRentalHistoryRequest) returns (ListReservationsResponse);
+
+  // Ids de los vehiculos con alguna reserva CONFIRMADA que se solape con el periodo.
+  // Lo usa el Gateway para armar la disponibilidad junto con el Vehicle Service.
+  rpc GetBusyVehicleIds(GetBusyVehicleIdsRequest) returns (GetBusyVehicleIdsResponse);
+}
+
+message CreateReservationRequest {
+  int64 cliente_id = 1;
+  int64 vehiculo_id = 2;
+  string fecha_inicio = 3;
+  string fecha_fin = 4;
+  double precio_diario = 5;
+}
+
+message CancelReservationRequest {
+  int64 id = 1;
+}
+
+message GetReservationRequest {
+  int64 id = 1;
+}
+
+message ListReservationsRequest {
+  // Todos opcionales: un campo sin informar no filtra.
+  optional int64 cliente_id = 1;
+  repeated int64 vehiculo_ids = 2;
+  optional ReservationStatus estado = 3;
+  // Rango de fechas sobre fecha_inicio, en el mismo formato ISO-8601.
+  optional string desde = 4;
+  optional string hasta = 5;
+}
+
+message ListReservationsResponse {
+  repeated Reservation reservas = 1;
+}
+
+message GetRentalHistoryRequest {
+  int64 cliente_id = 1;
+}
+
+message GetBusyVehicleIdsRequest {
+  string fecha_inicio = 1;
+  string fecha_fin = 2;
+}
+
+message GetBusyVehicleIdsResponse {
+  repeated int64 vehiculo_ids = 1;
+}

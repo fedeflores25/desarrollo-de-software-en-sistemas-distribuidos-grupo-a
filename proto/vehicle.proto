@@ -1,0 +1,138 @@
+// Contrato del Vehicle Service (Hito 2 - RPC).
+//
+// Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
+// consulta de disponibilidad y actualizacion de estado. Aplica las reglas propias
+// de los vehiculos (patente unica y no modificable, estado inicial DISPONIBLE,
+// los inactivos no se pueden alquilar).
+//
+// Errores (codigos gRPC):
+//   NOT_FOUND            el vehiculo no existe
+//   ALREADY_EXISTS       la patente ya esta registrada
+//   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
+//   FAILED_PRECONDITION  operacion no permitida por el estado (ej: vehiculo inactivo)
+syntax = "proto3";
+
+package rentar.vehicle.v1;
+
+option java_multiple_files = true;
+option java_package = "com.rentar.vehicle.grpc";
+
+enum VehicleType {
+  VEHICLE_TYPE_UNSPECIFIED = 0;
+  SEDAN = 1;
+  SUV = 2;
+  PICKUP = 3;
+  COUPE = 4;
+  HATCHBACK = 5;
+}
+
+enum VehicleStatus {
+  VEHICLE_STATUS_UNSPECIFIED = 0;
+  DISPONIBLE = 1;
+  RESERVADO = 2;
+  EN_ALQUILER = 3;
+}
+
+message Vehicle {
+  int64 id = 1;
+  string patente = 2;
+  string marca = 3;
+  string modelo = 4;
+  int32 anio = 5;
+  string color = 6;
+  VehicleType tipo = 7;
+  double precio_diario = 8;
+  VehicleStatus estado = 9;
+  bool activo = 10;
+}
+
+service VehicleService {
+  // Lista vehiculos aplicando los filtros que vengan informados.
+  rpc ListVehicles(ListVehiclesRequest) returns (ListVehiclesResponse);
+
+  // Devuelve un vehiculo por id. NOT_FOUND si no existe.
+  rpc GetVehicle(GetVehicleRequest) returns (Vehicle);
+
+  // Devuelve un vehiculo por patente. NOT_FOUND si no existe.
+  rpc GetVehicleByPatente(GetVehicleByPatenteRequest) returns (Vehicle);
+
+  // Alta. El vehiculo queda activo y en estado DISPONIBLE.
+  rpc CreateVehicle(CreateVehicleRequest) returns (Vehicle);
+
+  // Modificacion. La patente no se puede modificar, por eso no viaja en el request.
+  rpc UpdateVehicle(UpdateVehicleRequest) returns (Vehicle);
+
+  // Baja logica (activo = false). Devuelve el vehiculo ya dado de baja.
+  rpc DeactivateVehicle(DeactivateVehicleRequest) returns (Vehicle);
+
+  // Cambia el estado operativo (DISPONIBLE / RESERVADO / EN_ALQUILER).
+  rpc UpdateVehicleStatus(UpdateVehicleStatusRequest) returns (Vehicle);
+
+  // Disponibilidad: vehiculos ACTIVOS que cumplen los filtros, excluyendo los ids
+  // indicados. El Gateway obtiene esos ids ocupados del Rental Service
+  // (GetBusyVehicleIds) y los pasa aca.
+  rpc ListAvailableVehicles(ListAvailableVehiclesRequest) returns (ListVehiclesResponse);
+}
+
+message VehicleFilter {
+  // Todos opcionales: un campo sin informar no filtra.
+  optional VehicleType tipo = 1;
+  optional string marca = 2;
+  optional string modelo = 3;
+  optional double precio_min = 4;
+  optional double precio_max = 5;
+}
+
+message ListVehiclesRequest {
+  VehicleFilter filtro = 1;
+  // Si viene con ids, devuelve solo esos (lo usa el Gateway para completar datos).
+  repeated int64 ids = 2;
+  // true = solo activos. Sin informar devuelve activos e inactivos.
+  optional bool solo_activos = 3;
+}
+
+message ListVehiclesResponse {
+  repeated Vehicle vehiculos = 1;
+}
+
+message GetVehicleRequest {
+  int64 id = 1;
+}
+
+message GetVehicleByPatenteRequest {
+  string patente = 1;
+}
+
+message CreateVehicleRequest {
+  string patente = 1;
+  string marca = 2;
+  string modelo = 3;
+  int32 anio = 4;
+  string color = 5;
+  VehicleType tipo = 6;
+  double precio_diario = 7;
+}
+
+message UpdateVehicleRequest {
+  int64 id = 1;
+  string marca = 2;
+  string modelo = 3;
+  int32 anio = 4;
+  string color = 5;
+  VehicleType tipo = 6;
+  double precio_diario = 7;
+}
+
+message DeactivateVehicleRequest {
+  int64 id = 1;
+}
+
+message UpdateVehicleStatusRequest {
+  int64 id = 1;
+  VehicleStatus estado = 2;
+}
+
+message ListAvailableVehiclesRequest {
+  VehicleFilter filtro = 1;
+  repeated int64 excluir_ids = 2;
+}

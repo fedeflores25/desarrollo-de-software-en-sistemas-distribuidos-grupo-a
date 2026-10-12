@@ -1,0 +1,95 @@
+// Contrato del Customer Service (Hito 2 - RPC).
+//
+// Responsabilidades: alta, modificacion, baja logica y consulta de clientes, y
+// verificacion de existencia y estado activo. Aplica las reglas propias de los
+// clientes (documento y email unicos, los inactivos no pueden alquilar).
+//
+// Errores (codigos gRPC):
+//   NOT_FOUND         el cliente no existe
+//   ALREADY_EXISTS    documento o email ya registrados
+//   INVALID_ARGUMENT  datos obligatorios faltantes o invalidos
+syntax = "proto3";
+
+package rentar.customer.v1;
+
+option java_multiple_files = true;
+option java_package = "com.rentar.customer.grpc";
+
+message Customer {
+  int64 id = 1;
+  string documento = 2;
+  string nombre = 3;
+  string apellido = 4;
+  string email = 5;
+  string telefono = 6;
+  // Fecha en formato ISO-8601, ej: "1990-04-12". Vacio si no se informo.
+  string fecha_nacimiento = 7;
+  bool activo = 8;
+}
+
+service CustomerService {
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
+
+  // NOT_FOUND si no existe.
+  rpc GetCustomer(GetCustomerRequest) returns (Customer);
+
+  // Alta. El cliente queda activo.
+  rpc CreateCustomer(CreateCustomerRequest) returns (Customer);
+
+  rpc UpdateCustomer(UpdateCustomerRequest) returns (Customer);
+
+  // Baja logica (activo = false). Devuelve el cliente ya dado de baja.
+  rpc DeactivateCustomer(DeactivateCustomerRequest) returns (Customer);
+
+  // Pensado para el Gateway al reservar: responde si el cliente existe y si esta
+  // activo. A diferencia de GetCustomer, un cliente inexistente NO es un error:
+  // devuelve existe = false.
+  rpc VerifyCustomer(VerifyCustomerRequest) returns (VerifyCustomerResponse);
+}
+
+message ListCustomersRequest {
+  // Si viene con ids, devuelve solo esos (lo usa el Gateway para completar datos).
+  repeated int64 ids = 1;
+  // true = solo activos. Sin informar devuelve activos e inactivos.
+  optional bool solo_activos = 2;
+}
+
+message ListCustomersResponse {
+  repeated Customer clientes = 1;
+}
+
+message GetCustomerRequest {
+  int64 id = 1;
+}
+
+message CreateCustomerRequest {
+  string documento = 1;
+  string nombre = 2;
+  string apellido = 3;
+  string email = 4;
+  string telefono = 5;
+  string fecha_nacimiento = 6;
+}
+
+message UpdateCustomerRequest {
+  int64 id = 1;
+  string documento = 2;
+  string nombre = 3;
+  string apellido = 4;
+  string email = 5;
+  string telefono = 6;
+  string fecha_nacimiento = 7;
+}
+
+message DeactivateCustomerRequest {
+  int64 id = 1;
+}
+
+message VerifyCustomerRequest {
+  int64 id = 1;
+}
+
+message VerifyCustomerResponse {
+  bool existe = 1;
+  bool activo = 2;
+}
