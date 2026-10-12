@@ -72,6 +72,8 @@ service VehicleService {
   // indicados. El Gateway obtiene esos ids ocupados del Rental Service
   // (GetBusyVehicleIds) y los pasa aca.
   rpc ListAvailableVehicles(ListAvailableVehiclesRequest) returns (ListVehiclesResponse);
+
+  rpc GetVehicleByPatente(GetVehicleByPatenteRequest) returns (Vehicle);
 }
 
 message VehicleFilter {
@@ -135,4 +137,8 @@ message UpdateVehicleStatusRequest {
 message ListAvailableVehiclesRequest {
   VehicleFilter filtro = 1;
   repeated int64 excluir_ids = 2;
+}
+
+message GetVehicleByPatenteRequest {
+  string patente = 1;
 }
