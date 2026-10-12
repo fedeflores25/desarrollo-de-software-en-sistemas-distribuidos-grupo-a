@@ -32,5 +32,4 @@ export interface ActualizarVehiculoRequest {
   color?: string;
   tipo: TipoVehiculo;
   precioDiario: number;
-  estado: EstadoVehiculo;
 }
