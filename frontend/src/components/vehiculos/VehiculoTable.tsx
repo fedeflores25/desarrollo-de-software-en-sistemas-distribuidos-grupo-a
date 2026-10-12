@@ -1,9 +1,10 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import type { Vehiculo } from '../../types/vehiculo';
 
 interface VehiculoTableProps {
   vehiculos: Vehiculo[];
   onEditar?: (vehiculo: Vehiculo) => void;
+  onActualizarEstado?: (vehiculo: Vehiculo) => void;
   onDarDeBaja?: (vehiculo: Vehiculo) => void;
 }
 
@@ -19,7 +20,12 @@ function getEstadoClass(estado: Vehiculo['estado']): string {
   return `status-badge status-${estado.toLowerCase().replace('_', '-')}`;
 }
 
-export function VehiculoTable({ vehiculos, onEditar, onDarDeBaja }: VehiculoTableProps) {
+export function VehiculoTable({
+  vehiculos,
+  onEditar,
+  onActualizarEstado,
+  onDarDeBaja,
+}: VehiculoTableProps) {
   return (
     <div className="data-table-wrapper">
       <table className="data-table">
@@ -32,7 +38,7 @@ export function VehiculoTable({ vehiculos, onEditar, onDarDeBaja }: VehiculoTabl
             <th>Precio diario</th>
             <th>Estado</th>
             <th>Activo</th>
-            {(onEditar || onDarDeBaja) && <th aria-label="Acciones" />}
+            {(onEditar || onActualizarEstado || onDarDeBaja) && <th aria-label="Acciones" />}
           </tr>
         </thead>
         <tbody>
@@ -53,7 +59,7 @@ export function VehiculoTable({ vehiculos, onEditar, onDarDeBaja }: VehiculoTabl
                   {vehiculo.activo ? 'Activo' : 'Inactivo'}
                 </span>
               </td>
-              {(onEditar || onDarDeBaja) && (
+              {(onEditar || onActualizarEstado || onDarDeBaja) && (
                 <td className="table-actions">
                   {onEditar && (
                     <button
@@ -64,6 +70,18 @@ export function VehiculoTable({ vehiculos, onEditar, onDarDeBaja }: VehiculoTabl
                       type="button"
                     >
                       <Pencil aria-hidden="true" size={16} />
+                    </button>
+                  )}
+                  {onActualizarEstado && (
+                    <button
+                      aria-label={`Cambiar estado de ${vehiculo.patente}`}
+                      className="icon-button"
+                      disabled={!vehiculo.activo}
+                      onClick={() => onActualizarEstado(vehiculo)}
+                      title="Cambiar estado"
+                      type="button"
+                    >
+                      <RefreshCw aria-hidden="true" size={16} />
                     </button>
                   )}
                   {onDarDeBaja && (
