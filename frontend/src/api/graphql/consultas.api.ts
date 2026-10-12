@@ -12,29 +12,30 @@ interface GraphQLResponse<T> {
 }
 
 const CONSULTAR_RESERVAS_QUERY = `
-  query ConsultarReservas($filtro: ReservaFiltro) {
-    consultarReservas(filtro: $filtro) {
+  query ConsultarReservas($filtro: ReservaFiltroInput) {
+    reservas(filtro: $filtro) {
+      id
       cliente
       vehiculo
       patente
-      fechaInicio
-      fechaFinalizacion
-      precioDiario
-      importeTotal
+      fechaInicio: fecha_inicio
+      fechaFinalizacion: fecha_fin
+      precioDiario: precio_diario
+      importeTotal: importe_total
       estado
     }
   }
 `;
 
 const HISTORIAL_QUERY = `
-  query ConsultarHistorialAlquileres {
-    consultarHistorialAlquileres {
+  query ConsultarHistorialAlquileres($clienteId: ID!) {
+    historial(cliente_id: $clienteId) {
       vehiculo
       patente
-      fechaInicio
-      fechaFinalizacion
-      cantidadDias
-      importeTotal
+      fechaInicio: fecha_inicio
+      fechaFinalizacion: fecha_fin
+      cantidadDias: cantidad_dias
+      importeTotal: importe_total
       estado
     }
   }
@@ -69,18 +70,28 @@ async function graphqlRequest<T>(query: string, variables?: Record<string, unkno
 export async function consultarReservas(
   filtro: ReservaConsultaFiltro,
 ): Promise<ConsultaReserva[]> {
-  const data = await graphqlRequest<{ consultarReservas: ConsultaReserva[] }>(
+  const data = await graphqlRequest<{ reservas: ConsultaReserva[] }>(
     CONSULTAR_RESERVAS_QUERY,
-    { filtro },
+    {
+      filtro: {
+        ...(filtro.clienteId && { cliente_id: filtro.clienteId }),
+        ...(filtro.vehiculoId && { vehiculo_id: filtro.vehiculoId }),
+        ...(filtro.tipoVehiculo && { tipo_vehiculo: filtro.tipoVehiculo }),
+        ...(filtro.estado && { estado: filtro.estado }),
+        ...(filtro.fechaInicio && { desde: filtro.fechaInicio }),
+        ...(filtro.fechaFin && { hasta: filtro.fechaFin }),
+      },
+    },
   );
 
-  return data.consultarReservas;
+  return data.reservas;
 }
 
-export async function consultarHistorialAlquileres(): Promise<HistorialAlquiler[]> {
-  const data = await graphqlRequest<{ consultarHistorialAlquileres: HistorialAlquiler[] }>(
+export async function consultarHistorialAlquileres(clienteId: number): Promise<HistorialAlquiler[]> {
+  const data = await graphqlRequest<{ historial: HistorialAlquiler[] }>(
     HISTORIAL_QUERY,
+    { clienteId },
   );
 
-  return data.consultarHistorialAlquileres;
+  return data.historial;
 }

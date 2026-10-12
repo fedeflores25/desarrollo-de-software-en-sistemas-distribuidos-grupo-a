@@ -4,7 +4,9 @@ import { ApiError } from '../api/rest/http';
 import { listarClientes } from '../api/rest/clientes.api';
 import { cancelarReserva, crearReserva } from '../api/rest/reservas.api';
 import { listarVehiculos } from '../api/rest/vehiculos.api';
+import { consultarReservas } from '../api/graphql/consultas.api';
 import type { Cliente } from '../types/cliente';
+import type { ConsultaReserva } from '../types/consultas';
 import type { Reserva } from '../types/reserva';
 import type { Vehiculo } from '../types/vehiculo';
 
@@ -15,7 +17,7 @@ export function ReservasPage() {
   const [vehiculoId, setVehiculoId] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [reservaId, setReservaId] = useState('');
+  const [reservasConfirmadas, setReservasConfirmadas] = useState<ConsultaReserva[]>([]);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
@@ -32,11 +34,16 @@ export function ReservasPage() {
       const [clientesResult, vehiculosResult] = await Promise.all([listarClientes(), listarVehiculos()]);
       setClientes(clientesResult.filter((cliente) => cliente.activo));
       setVehiculos(vehiculosResult.filter((vehiculo) => vehiculo.activo));
+      await cargarReservasConfirmadas();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible cargar los datos de reserva.');
     } finally {
       setCargando(false);
     }
+  }
+
+  async function cargarReservasConfirmadas() {
+    setReservasConfirmadas(await consultarReservas({ estado: 'CONFIRMADA' }));
   }
 
   async function handleCrearReserva(event: FormEvent<HTMLFormElement>) {
@@ -57,6 +64,7 @@ export function ReservasPage() {
       setVehiculoId('');
       setFechaInicio('');
       setFechaFin('');
+      await cargarReservasConfirmadas();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible crear la reserva.');
     } finally {
@@ -64,15 +72,14 @@ export function ReservasPage() {
     }
   }
 
-  async function handleCancelarReserva(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleCancelarReserva(reserva: ConsultaReserva) {
     setGuardando(true);
     setError('');
     setResultado(undefined);
 
     try {
-      setResultado(await cancelarReserva(Number(reservaId)));
-      setReservaId('');
+      setResultado(await cancelarReserva(reserva.id));
+      await cargarReservasConfirmadas();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible cancelar la reserva.');
     } finally {
@@ -137,28 +144,39 @@ export function ReservasPage() {
 
           <section className="form-panel" aria-labelledby="cancelar-reserva-title">
             <div className="form-panel-heading">
-              <h3 id="cancelar-reserva-title">Cancelar reserva</h3>
-              <p>Ingresa el identificador de la reserva a cancelar.</p>
+              <h3 id="cancelar-reserva-title">Reservas confirmadas</h3>
+              <p>Selecciona una reserva para cancelarla antes de su inicio.</p>
             </div>
-            <form className="form-grid" onSubmit={(event) => void handleCancelarReserva(event)}>
-              <label className="form-field">
-                <span>ID de reserva</span>
-                <input min="1" onChange={(event) => setReservaId(event.target.value)} required type="number" value={reservaId} />
-              </label>
-              <div className="form-actions">
-                <button className="danger-button" disabled={guardando} type="submit">
-                  <XCircle aria-hidden="true" size={18} />
-                  {guardando ? 'Procesando...' : 'Cancelar reserva'}
-                </button>
+            {reservasConfirmadas.length === 0 ? (
+              <p className="feedback-message">No hay reservas confirmadas para cancelar.</p>
+            ) : (
+              <div className="reservation-selection-list">
+                {reservasConfirmadas.map((reserva) => (
+                  <div className="reservation-selection-item" key={reserva.id}>
+                    <div>
+                      <strong>{reserva.cliente}</strong>
+                      <span>{reserva.patente} - {reserva.vehiculo}</span>
+                    </div>
+                    <button
+                      className="danger-button"
+                      disabled={guardando}
+                      onClick={() => void handleCancelarReserva(reserva)}
+                      type="button"
+                    >
+                      <XCircle aria-hidden="true" size={16} />
+                      {guardando ? 'Procesando...' : 'Cancelar'}
+                    </button>
+                  </div>
+                ))}
               </div>
-            </form>
+            )}
           </section>
         </div>
       )}
 
       {resultado && (
         <div className="feedback-message feedback-success" role="status">
-          Reserva #{resultado.id} - patente {resultado.patente} - estado {resultado.estado} - importe total ${resultado.importeTotal}.
+          Reserva #{resultado.id} - estado {resultado.estado} - importe total ${resultado.importeTotal}.
         </div>
       )}
     </section>

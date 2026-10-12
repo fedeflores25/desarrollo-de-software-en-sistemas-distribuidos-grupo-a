@@ -12,7 +12,7 @@ interface DisponibilidadData {
 }
 
 const DISPONIBILIDAD_QUERY = `
-  query VehiculosDisponibles($filtro: DisponibilidadFiltro!) {
+  query VehiculosDisponibles($filtro: DisponibilidadFiltroInput!) {
     vehiculosDisponibles(filtro: $filtro) {
       patente
       marca
@@ -20,7 +20,7 @@ const DISPONIBILIDAD_QUERY = `
       anio
       color
       tipo
-      precioDiario
+      precioDiario: precio_diario
     }
   }
 `;
@@ -34,7 +34,20 @@ export async function buscarDisponibilidad(
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ query: DISPONIBILIDAD_QUERY, variables: { filtro } }),
+    body: JSON.stringify({
+      query: DISPONIBILIDAD_QUERY,
+      variables: {
+        filtro: {
+          fecha_inicio: filtro.fechaInicio,
+          fecha_fin: filtro.fechaFin,
+          ...(filtro.tipo && { tipo: filtro.tipo }),
+          ...(filtro.marca && { marca: filtro.marca }),
+          ...(filtro.modelo && { modelo: filtro.modelo }),
+          ...(filtro.precioMin !== undefined && { precio_min: filtro.precioMin }),
+          ...(filtro.precioMax !== undefined && { precio_max: filtro.precioMax }),
+        },
+      },
+    }),
   });
 
   const payload = await response.json() as GraphQLResponse<DisponibilidadData>;

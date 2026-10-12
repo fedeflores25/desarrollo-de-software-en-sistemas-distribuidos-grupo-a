@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { ApiError } from '../api/rest/http';
 import {
   actualizarVehiculo,
+  actualizarEstadoVehiculo,
+  buscarVehiculoPorPatente,
   crearVehiculo,
   darDeBajaVehiculo,
   listarVehiculos,
@@ -23,7 +25,9 @@ export function VehiculosPage() {
   const [formError, setFormError] = useState('');
   const [formVisible, setFormVisible] = useState(false);
   const [vehiculoEnEdicion, setVehiculoEnEdicion] = useState<Vehiculo>();
+  const [vehiculoAActualizarEstado, setVehiculoAActualizarEstado] = useState<Vehiculo>();
   const [vehiculoABaja, setVehiculoABaja] = useState<Vehiculo>();
+  const [nuevoEstado, setNuevoEstado] = useState<Vehiculo['estado']>('DISPONIBLE');
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
@@ -47,16 +51,6 @@ export function VehiculosPage() {
     }
   }
 
-  const vehiculosFiltrados = useMemo(() => {
-    const patente = busqueda.trim().toUpperCase();
-
-    if (!patente) {
-      return vehiculos;
-    }
-
-    return vehiculos.filter((vehiculo) => vehiculo.patente.toUpperCase().includes(patente));
-  }, [busqueda, vehiculos]);
-
   function abrirAlta() {
     setFormError('');
     setVehiculoEnEdicion(undefined);
@@ -67,6 +61,11 @@ export function VehiculosPage() {
     setFormError('');
     setVehiculoEnEdicion(vehiculo);
     setFormVisible(true);
+  }
+
+  function abrirCambioEstado(vehiculo: Vehiculo) {
+    setNuevoEstado(vehiculo.estado);
+    setVehiculoAActualizarEstado(vehiculo);
   }
 
   function cerrarFormulario() {
@@ -114,6 +113,46 @@ export function VehiculosPage() {
     }
   }
 
+  async function confirmarCambioEstado() {
+    if (!vehiculoAActualizarEstado) {
+      return;
+    }
+
+    setGuardando(true);
+    setError('');
+
+    try {
+      await actualizarEstadoVehiculo(vehiculoAActualizarEstado.id, nuevoEstado);
+      setVehiculoAActualizarEstado(undefined);
+      await cargarVehiculos();
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : 'No fue posible actualizar el estado.');
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function buscarPorPatente(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const patente = busqueda.trim();
+
+    if (!patente) {
+      await cargarVehiculos();
+      return;
+    }
+
+    setCargando(true);
+    setError('');
+    try {
+      setVehiculos([await buscarVehiculoPorPatente(patente)]);
+    } catch (cause) {
+      setVehiculos([]);
+      setError(cause instanceof ApiError ? cause.message : 'No se encontro el vehiculo indicado.');
+    } finally {
+      setCargando(false);
+    }
+  }
+
   return (
     <section className="page-content" aria-labelledby="vehiculos-title">
       <div className="page-heading">
@@ -138,7 +177,7 @@ export function VehiculosPage() {
         />
       )}
 
-      <div className="toolbar">
+      <form className="toolbar" onSubmit={(event) => void buscarPorPatente(event)}>
         <label className="search-field">
           <Search aria-hidden="true" size={18} />
           <span className="sr-only">Buscar por patente</span>
@@ -149,7 +188,11 @@ export function VehiculosPage() {
             value={busqueda}
           />
         </label>
-      </div>
+        <button className="secondary-button" type="submit">
+          <Search aria-hidden="true" size={16} />
+          Buscar
+        </button>
+      </form>
 
       {cargando && <p className="feedback-message">Cargando vehiculos...</p>}
 
@@ -162,15 +205,16 @@ export function VehiculosPage() {
         </div>
       )}
 
-      {!cargando && !error && vehiculosFiltrados.length === 0 && (
+      {!cargando && !error && vehiculos.length === 0 && (
         <p className="feedback-message">No se encontraron vehiculos para la patente indicada.</p>
       )}
 
-      {!cargando && !error && vehiculosFiltrados.length > 0 && (
+      {!cargando && !error && vehiculos.length > 0 && (
         <VehiculoTable
+          onActualizarEstado={abrirCambioEstado}
           onDarDeBaja={setVehiculoABaja}
           onEditar={abrirEdicion}
-          vehiculos={vehiculosFiltrados}
+          vehiculos={vehiculos}
         />
       )}
 
@@ -185,6 +229,34 @@ export function VehiculosPage() {
               </button>
               <button className="danger-button" disabled={guardando} onClick={() => void confirmarBaja()} type="button">
                 {guardando ? 'Procesando...' : 'Confirmar baja'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {vehiculoAActualizarEstado && (
+        <div className="modal-backdrop" role="presentation">
+          <section aria-labelledby="estado-title" aria-modal="true" className="confirmation-dialog" role="dialog">
+            <h3 id="estado-title">Cambiar estado</h3>
+            <p>Actualiza el estado operativo del vehiculo {vehiculoAActualizarEstado.patente}.</p>
+            <label className="form-field">
+              <span>Estado</span>
+              <select
+                onChange={(event) => setNuevoEstado(event.target.value as Vehiculo['estado'])}
+                value={nuevoEstado}
+              >
+                <option value="DISPONIBLE">DISPONIBLE</option>
+                <option value="RESERVADO">RESERVADO</option>
+                <option value="EN_ALQUILER">EN_ALQUILER</option>
+              </select>
+            </label>
+            <div className="form-actions">
+              <button className="secondary-button" disabled={guardando} onClick={() => setVehiculoAActualizarEstado(undefined)} type="button">
+                Cancelar
+              </button>
+              <button className="primary-button" disabled={guardando} onClick={() => void confirmarCambioEstado()} type="button">
+                {guardando ? 'Procesando...' : 'Actualizar estado'}
               </button>
             </div>
           </section>

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import type {
   ActualizarVehiculoRequest,
   CrearVehiculoRequest,
-  EstadoVehiculo,
   TipoVehiculo,
   Vehiculo,
 } from '../../types/vehiculo';
@@ -16,7 +15,6 @@ interface VehiculoFormProps {
 }
 
 const tipos: TipoVehiculo[] = ['SEDAN', 'SUV', 'PICKUP', 'COUPE', 'HATCHBACK'];
-const estados: EstadoVehiculo[] = ['DISPONIBLE', 'RESERVADO', 'EN_ALQUILER'];
 
 interface FormState {
   patente: string;
@@ -26,7 +24,6 @@ interface FormState {
   color: string;
   tipo: TipoVehiculo;
   precioDiario: string;
-  estado: EstadoVehiculo;
 }
 
 function getInitialState(vehiculo?: Vehiculo): FormState {
@@ -38,7 +35,6 @@ function getInitialState(vehiculo?: Vehiculo): FormState {
     color: vehiculo?.color ?? '',
     tipo: vehiculo?.tipo ?? 'SEDAN',
     precioDiario: vehiculo?.precioDiario.toString() ?? '',
-    estado: vehiculo?.estado ?? 'DISPONIBLE',
   };
 }
 
@@ -66,7 +62,7 @@ export function VehiculoForm({ vehiculo, error, submitting, onCancel, onSubmit }
     };
 
     if (vehiculo) {
-      await onSubmit({ ...commonData, estado: form.estado });
+      await onSubmit(commonData);
       return;
     }
 
@@ -102,7 +98,7 @@ export function VehiculoForm({ vehiculo, error, submitting, onCancel, onSubmit }
           <input onChange={(event) => updateField('modelo', event.target.value)} required value={form.modelo} />
         </label>
         <label className="form-field">
-          <span>Anio</span>
+          <span>Año</span>
           <input
             min="1900"
             onChange={(event) => updateField('anio', event.target.value)}
@@ -132,15 +128,6 @@ export function VehiculoForm({ vehiculo, error, submitting, onCancel, onSubmit }
             value={form.precioDiario}
           />
         </label>
-        {vehiculo && (
-          <label className="form-field">
-            <span>Estado</span>
-            <select onChange={(event) => updateField('estado', event.target.value as EstadoVehiculo)} value={form.estado}>
-              {estados.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
-            </select>
-          </label>
-        )}
-
         {error && <p className="form-error" role="alert">{error}</p>}
 
         <div className="form-actions">

@@ -28,7 +28,7 @@ const schema = buildSchema(`
     
     vehiculos(filtro: VehiculoFiltroInput, soloActivos: Boolean): [Vehiculo]
     vehiculo(id: ID!): Vehiculo
-    vehiculosDisponibles(filtro: VehiculoFiltroInput): [Vehiculo]
+    vehiculosDisponibles(filtro: DisponibilidadFiltroInput!): [Vehiculo]
     
     reservas(filtro: ReservaFiltroInput): [Reservation]
     reserva(id: ID!): Reservation
