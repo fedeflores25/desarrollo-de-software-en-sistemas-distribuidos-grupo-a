@@ -50,12 +50,9 @@ export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) 
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (tipo === 'reservas') {
-      void cargarFiltros();
-      return;
-    }
-
-    void cargarHistorial();
+    setReservas(undefined);
+    setHistorial(undefined);
+    void cargarFiltros();
   }, [tipo]);
 
   async function cargarFiltros() {
@@ -96,11 +93,15 @@ export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) 
   }
 
   async function cargarHistorial() {
+    if (!clienteId) {
+      return;
+    }
+
     setCargando(true);
     setError('');
 
     try {
-      setHistorial(await consultarHistorialAlquileres());
+      setHistorial(await consultarHistorialAlquileres(Number(clienteId)));
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible cargar el historial.');
     } finally {
@@ -161,6 +162,28 @@ export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) 
               <button className="primary-button" disabled={cargando} onClick={() => void buscarReservas()} type="button">
                 <Search aria-hidden="true" size={18} />
                 {cargando ? 'Consultando...' : 'Consultar reservas'}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {tipo === 'historial' && (
+        <section className="form-panel" aria-label="Filtro de historial">
+          <div className="form-grid">
+            <label className="form-field">
+              <span>Cliente</span>
+              <select onChange={(event) => setClienteId(event.target.value)} required value={clienteId}>
+                <option value="">Seleccionar cliente</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>{cliente.nombre} {cliente.apellido}</option>
+                ))}
+              </select>
+            </label>
+            <div className="form-actions">
+              <button className="primary-button" disabled={cargando || !clienteId} onClick={() => void cargarHistorial()} type="button">
+                <Search aria-hidden="true" size={18} />
+                {cargando ? 'Consultando...' : 'Consultar historial'}
               </button>
             </div>
           </div>

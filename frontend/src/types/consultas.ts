@@ -11,6 +11,7 @@ export interface ReservaConsultaFiltro {
 }
 
 export interface ConsultaReserva {
+  id: number;
   cliente: string;
   vehiculo: string;
   patente: string;

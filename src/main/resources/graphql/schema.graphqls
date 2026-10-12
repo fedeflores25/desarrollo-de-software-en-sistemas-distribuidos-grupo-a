@@ -1,4 +1,8 @@
-"""Tipos de vehiculos disponibles para alquiler."""
+"""
+Tipos de vehiculos disponibles para alquiler.
+Los valores permitidos son SEDAN, SUV, PICKUP,
+COUPE y HATCHBACK.
+"""
 enum TipoVehiculo {
     SEDAN
     SUV
@@ -7,25 +11,70 @@ enum TipoVehiculo {
     HATCHBACK
 }
 
-"""Informacion de un vehiculo disponible."""
+"""
+Informacion de un vehiculo disponible para alquiler.
+"""
 type VehiculoDisponible {
+
+    "Patente unica del vehiculo."
     patente: String!
+
+    "Marca del vehiculo."
     marca: String!
+
+    "Modelo del vehiculo."
     modelo: String!
+
+    "Anio de fabricacion del vehiculo."
     anio: Int!
+
+    "Color del vehiculo. Puede ser nulo."
     color: String
+
+    "Tipo de vehiculo."
     tipo: TipoVehiculo!
+
+    "Precio diario de alquiler del vehiculo."
     precioDiario: Float!
 }
 
-"""Filtros para consultar disponibilidad. Las fechas son obligatorias."""
+"""
+Filtros para consultar la disponibilidad de vehiculos.
+
+Todos los filtros son opcionales, excepto las fechas
+de inicio y finalizacion del alquiler.
+"""
 input DisponibilidadFiltro {
+
+    "Tipo de vehiculo que se desea consultar."
     tipo: TipoVehiculo
+
+    "Marca del vehiculo."
     marca: String
+
+    "Modelo del vehiculo."
     modelo: String
+
+    "Precio diario minimo para la busqueda."
     precioMin: Float
+
+    "Precio diario maximo para la busqueda."
     precioMax: Float
+
+    """
+    Fecha y hora de inicio del alquiler.
+    Es obligatoria y debe ser posterior a la fecha actual.
+    Formato ISO 8601 local: YYYY-MM-DDTHH:mm:ss.
+    Ejemplo: 2026-10-20T10:00:00.
+    """
     fechaInicio: String!
+
+    """
+    Fecha y hora de finalizacion del alquiler.
+    Es obligatoria y debe ser posterior a fechaInicio.
+    Formato ISO 8601 local: YYYY-MM-DDTHH:mm:ss.
+    Ejemplo: 2026-10-25T10:00:00.
+    """
     fechaFin: String!
 }
 
@@ -51,7 +100,7 @@ type ConsultaReservaResponse {
     estado: String
 }
 
-# 2. El objeto de filtros opcionales (Lo que nos envía el frontend)
+# 2. El objeto de filtros opcionales (Lo que nos envia el frontend)
 input ReservaFiltro {
     clienteId: ID
     vehiculoId: ID
@@ -61,18 +110,28 @@ input ReservaFiltro {
     fechaFin: String
 }
 
-
 type Query {
-    """Consulta vehiculos activos y disponibles durante el periodo indicado."""
+
+    """
+    Consulta los vehiculos activos y disponibles
+    durante todo el periodo solicitado.
+
+    Permite aplicar filtros opcionales por tipo,
+    marca, modelo y rango de precio diario.
+
+    Excluye vehiculos con reservas confirmadas
+    que se superpongan con el periodo seleccionado.
+
+    Devuelve una lista vacia si no existen
+    vehiculos disponibles.
+    """
     vehiculosDisponibles(
         filtro: DisponibilidadFiltro!
     ): [VehiculoDisponible!]!
 
-    """Historial de alquileres"""
+    """Historial de alquileres."""
     consultarHistorialAlquileres: [HistorialResponse]
 
-    """Consulta de reservas realizadas"""
+    """Consulta de reservas realizadas."""
     consultarReservas(filtro: ReservaFiltro): [ConsultaReservaResponse]
-
 }
-
