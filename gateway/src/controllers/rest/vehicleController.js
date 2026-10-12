@@ -12,6 +12,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/vehiculos/patente/:patente
+router.get('/patente/:patente', async (req, res) => {
+    try {
+        const vehiculo = await vehicleService.getVehicleByPatente(req.params.patente);
+        res.json(vehiculo);
+    } catch (error) {
+        if (error.code === 5) return res.status(404).json({ error: 'Vehículo no encontrado' });
+        res.status(500).json({ error: error.details });
+    }
+});
+
 // GET /api/vehiculos/:id
 router.get('/:id', async (req, res) => {
     try {

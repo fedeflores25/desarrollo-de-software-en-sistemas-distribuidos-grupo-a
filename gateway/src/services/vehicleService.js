@@ -48,9 +48,14 @@ async function listAvailableVehicles(filtro = {}, excluirIds = []) {
     return response.vehiculos || [];
 }
 
+async function getVehicleByPatente(patente) {
+    return callGrpc('GetVehicleByPatente', { patente });
+}
+
 module.exports = {
     listVehicles,
     getVehicle,
+    getVehicleByPatente,
     createVehicle,
     updateVehicle,
     deactivateVehicle,
