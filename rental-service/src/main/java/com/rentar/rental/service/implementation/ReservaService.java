@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,18 +15,28 @@ import com.rentar.rental.entity.enums.EstadoReserva;
 import com.rentar.rental.exception.ReservaEstadoInvalidoException;
 import com.rentar.rental.exception.ReservaInvalidaException;
 import com.rentar.rental.exception.ReservaNoEncontradaException;
+import com.rentar.rental.events.ReservaConfirmadaEvent;
 import com.rentar.rental.exception.VehiculoNoDisponibleException;
 import com.rentar.rental.repository.ReservaRepository;
 import com.rentar.rental.service.FiltroReserva;
+import com.rentar.rental.service.IMantenimientoService;
 import com.rentar.rental.service.IReservaService;
 
 @Service
 public class ReservaService implements IReservaService {
 
     private final ReservaRepository reservaRepository;
+    private final IMantenimientoService mantenimientoService;
+    private final ApplicationEventPublisher eventos;
 
-    public ReservaService(ReservaRepository reservaRepository) {
+    public ReservaService(
+            ReservaRepository reservaRepository,
+            IMantenimientoService mantenimientoService,
+            ApplicationEventPublisher eventos) {
+
         this.reservaRepository = reservaRepository;
+        this.mantenimientoService = mantenimientoService;
+        this.eventos = eventos;
     }
 
     // ALTA
@@ -79,7 +90,17 @@ public class ReservaService implements IReservaService {
         reserva.setEstado(EstadoReserva.CONFIRMADA);
         reserva.setFechaAlta(ahora);
 
-        return reservaRepository.save(reserva);
+        Reserva guardada = reservaRepository.save(reserva);
+
+        // El mantenimiento queda PENDIENTE en la misma transaccion. El evento se publica
+        // recien cuando la transaccion se confirma y sin esperar el resultado.
+        mantenimientoService.registrarPendiente(guardada.getId());
+
+        eventos.publishEvent(new ReservaConfirmadaEvent(
+                guardada.getId(), guardada.getVehiculoId(),
+                guardada.getFechaInicio(), guardada.getFechaFin()));
+
+        return guardada;
     }
 
     // CANCELACION

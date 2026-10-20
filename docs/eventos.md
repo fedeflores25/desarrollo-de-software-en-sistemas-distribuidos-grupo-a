@@ -52,7 +52,7 @@ Reglas comunes:
 - **Entrega al menos una vez.** RabbitMQ puede entregar un mensaje más de una vez, así que cada consumidor ignora un `eventId` que ya procesó.
 - **Publicar después de guardar.** Se publica el evento una vez confirmada la transacción en la base, nunca antes.
 - **Publicar no bloquea.** Si falla la publicación, la operación principal no se cancela: se registra el error y se sigue.
-- **Mensajes persistentes** y confirmación manual (`ack`) después de procesarlos.
+- **Mensajes persistentes** y confirmación (`ack`) después de procesarlos. Un mensaje mal formado se descarta sin reintentarlo.
 
 ## Flujo 1: verificación de patente al registrar un vehículo
 
