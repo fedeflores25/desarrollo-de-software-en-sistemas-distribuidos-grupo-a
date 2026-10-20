@@ -26,6 +26,16 @@ enum ReservationStatus {
   FINALIZADA = 3;
 }
 
+// Resultado del mantenimiento preventivo asociado a la reserva (Hito 3).
+// Lo informa el Maintenance Service por evento (mantenimiento.resultado) y el Rental
+// Service lo guarda. Mientras no llega el resultado la reserva figura como PENDIENTE.
+enum MaintenanceStatus {
+  MAINTENANCE_STATUS_UNSPECIFIED = 0;
+  PENDIENTE = 1;
+  REALIZADO = 2;
+  NO_REALIZADO = 3;
+}
+
 message Reservation {
   int64 id = 1;
   int64 cliente_id = 2;
@@ -40,6 +50,9 @@ message Reservation {
   string fecha_alta = 10;
   // Vacio si la reserva no fue cancelada.
   string fecha_cancelacion = 11;
+  // Mantenimiento preventivo de la reserva (Hito 3). Sin informar (UNSPECIFIED) en las
+  // reservas anteriores al Hito 3.
+  MaintenanceStatus mantenimiento = 12;
 }
 
 service RentalService {

@@ -40,3 +40,9 @@ Los servicios responden con codigos de estado gRPC y el Gateway los traduce a HT
 
 1. Gateway -> `RentalService.GetBusyVehicleIds` (vehiculos ocupados en el periodo)
 2. Gateway -> `VehicleService.ListAvailableVehicles` (activos, con filtros, excluyendo los ocupados)
+
+## Eventos (Hito 3)
+
+Los eventos asincronicos (RabbitMQ) no se definen en archivos `.proto`: su formato, los nombres, las colas y los payloads estan en [`docs/eventos.md`](../docs/eventos.md).
+
+`Reservation` en `rental.proto` suma el campo `mantenimiento` (`PENDIENTE`, `REALIZADO` o `NO_REALIZADO`), que informa el resultado del mantenimiento preventivo de la reserva.
