@@ -1,7 +1,9 @@
 package com.rentar.rental.events;
 
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 
+import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -36,11 +38,12 @@ public class MantenimientoResultadoListener {
     @RabbitListener(
             queues = EventosConfig.COLA_RESULTADO,
             autoStartup = "${rental.eventos.habilitado:true}")
-    public void alRecibirResultado(Message mensaje) {
+    public void alRecibirResultado(Message mensaje, Channel channel) throws IOException {
 
         String eventId;
         long reservaId;
         EstadoMantenimiento resultado;
+        long deliveryTag = mensaje.getMessageProperties().getDeliveryTag();
 
         try {
             JsonNode sobre = JSON.readTree(new String(mensaje.getBody(), StandardCharsets.UTF_8));
@@ -56,13 +59,20 @@ public class MantenimientoResultadoListener {
 
         } catch (RuntimeException e) {
             log.error("Se descarta un mantenimiento.resultado mal formado: {}", e.getMessage());
-            throw new AmqpRejectAndDontRequeueException("mensaje mal formado", e);
+            channel.basicReject(deliveryTag, false);
+            return;
         }
 
-        boolean guardado = mantenimientoService.registrarResultado(eventId, reservaId, resultado);
+        try {
+            boolean guardado = mantenimientoService.registrarResultado(eventId, reservaId, resultado);
 
-        if (guardado) {
-            log.info("Mantenimiento de la reserva {}: {} (evento {})", reservaId, resultado, eventId);
+            if (guardado) {
+                log.info("Mantenimiento de la reserva {}: {} (evento {})", reservaId, resultado, eventId);
+            }
+            channel.basicAck(deliveryTag, false);
+        } catch (RuntimeException e) {
+            log.error("No se pudo guardar mantenimiento.resultado; se reintentara: {}", e.getMessage());
+            channel.basicNack(deliveryTag, false, true);
         }
     }
 }
