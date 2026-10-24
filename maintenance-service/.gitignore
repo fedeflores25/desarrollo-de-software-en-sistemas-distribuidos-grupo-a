@@ -1,0 +1,20 @@
+# Archivos generados por Maven
+/target/
+
+# Archivos compilados por Eclipse
+/bin/
+
+# Carpetas generadas
+/generated-sources/
+/generated-test-sources/
+/surefire-reports/
+
+# Configuracion local de IDE
+/.settings/
+/.classpath
+/.project
+/.factorypath
+/.vscode/
+
+# Archivos temporales
+*.log
