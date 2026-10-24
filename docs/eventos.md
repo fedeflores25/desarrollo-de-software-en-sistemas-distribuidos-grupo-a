@@ -110,3 +110,22 @@ Cómo se ve en el resto del sistema:
 - **Rental Service** guarda el resultado asociado a la reserva y lo informa en el campo `mantenimiento` de `Reservation` (`rental.proto`): `PENDIENTE` mientras no llegó el resultado, y después `REALIZADO` o `NO_REALIZADO`.
 - **Maintenance Service** es un servicio nuevo en Java con Spring Boot, con su propia base `rentar_mantenimiento` donde registra cada solicitud, y sin API gRPC: solo consume y publica eventos.
 - **Gateway y frontend** pueden mostrar el campo `mantenimiento` al consultar una reserva.
+
+## Ejecucion local con Docker
+
+Docker Desktop debe estar abierto solamente al probar la mensajeria real. Para crear
+el broker local, se copia `.env.example` como `.env` si se desean definir credenciales
+propias; si no existe `.env`, Docker Compose usa `guest` / `guest`.
+
+```powershell
+docker compose up -d
+docker compose ps
+```
+
+Cuando el servicio figure como `healthy`, RabbitMQ queda disponible en
+`localhost:5672` y su consola en `http://localhost:15672`. Para detenerlo sin
+borrar los mensajes persistentes ni los datos del broker:
+
+```powershell
+docker compose stop
+```
