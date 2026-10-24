@@ -1,7 +1,5 @@
 package com.rentar.maintenance.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rentar.maintenance.entity.SolicitudMantenimiento;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -9,19 +7,21 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Publica el resultado para que Rental actualice la reserva sin acoplarse a esta base. */
 @Component
 public class MantenimientoResultadoPublisher {
 
+    private static final JsonMapper JSON = JsonMapper.builder().build();
+
     private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper objectMapper;
     private final boolean eventosHabilitados;
 
-    public MantenimientoResultadoPublisher(RabbitTemplate rabbitTemplate, ObjectMapper objectMapper,
+    public MantenimientoResultadoPublisher(RabbitTemplate rabbitTemplate,
                                            @Value("${maintenance.eventos.habilitado:true}") boolean eventosHabilitados) {
         this.rabbitTemplate = rabbitTemplate;
-        this.objectMapper = objectMapper;
         this.eventosHabilitados = eventosHabilitados;
     }
 
@@ -30,7 +30,7 @@ public class MantenimientoResultadoPublisher {
             return;
         }
 
-        ObjectNode evento = objectMapper.createObjectNode();
+        ObjectNode evento = JSON.createObjectNode();
         evento.put("eventId", UUID.randomUUID().toString());
         evento.put("eventType", EventosConfig.MANTENIMIENTO_RESULTADO);
         evento.put("correlationId", solicitud.getCorrelationId());
