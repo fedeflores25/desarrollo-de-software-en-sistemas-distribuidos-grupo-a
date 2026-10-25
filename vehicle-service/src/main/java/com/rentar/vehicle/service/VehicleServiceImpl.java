@@ -5,26 +5,39 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.rentar.vehicle.entity.EventoVerificacionProcesado;
 import com.rentar.vehicle.dto.VehicleCreateRequest;
 import com.rentar.vehicle.dto.VehicleUpdateRequest;
 import com.rentar.vehicle.entity.Vehiculo;
 import com.rentar.vehicle.entity.enums.EstadoVehiculo;
+import com.rentar.vehicle.entity.enums.ResultadoVerificacion;
+import com.rentar.vehicle.events.VerificacionPatenteSolicitadaEvent;
 import com.rentar.vehicle.exception.PatenteDuplicadaException;
 import com.rentar.vehicle.exception.VehiculoInactivoException;
 import com.rentar.vehicle.exception.VehiculoNoEncontradoException;
 import com.rentar.vehicle.repository.VehicleRepository;
+import com.rentar.vehicle.repository.EventoVerificacionProcesadoRepository;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
+    private final EventoVerificacionProcesadoRepository eventoRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public VehicleServiceImpl(VehicleRepository vehicleRepository) {
+    public VehicleServiceImpl(VehicleRepository vehicleRepository,
+                              EventoVerificacionProcesadoRepository eventoRepository,
+                              ApplicationEventPublisher eventPublisher) {
         this.vehicleRepository = vehicleRepository;
+        this.eventoRepository = eventoRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
+    @Transactional
     public Vehiculo create(VehicleCreateRequest request) {
         if (vehicleRepository.existsByPatente(request.getPatente())) {
             throw new PatenteDuplicadaException(
@@ -37,7 +50,10 @@ public class VehicleServiceImpl implements VehicleService {
         vehiculo.setActivo(true);
         vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
 
-        return vehicleRepository.save(vehiculo);
+        Vehiculo guardado = vehicleRepository.save(vehiculo);
+        eventPublisher.publishEvent(new VerificacionPatenteSolicitadaEvent(
+                guardado.getId(), guardado.getPatente()));
+        return guardado;
     }
 
     @Override
@@ -90,6 +106,28 @@ public class VehicleServiceImpl implements VehicleService {
 
         vehiculo.setEstado(estado);
         return vehicleRepository.save(vehiculo);
+    }
+
+    @Override
+    @Transactional
+    public boolean procesarResultadoVerificacion(String eventId, Long vehiculoId, String patente,
+                                                 ResultadoVerificacion resultado) {
+        if (eventoRepository.existsById(eventId)) {
+            return false;
+        }
+
+        Vehiculo vehiculo = getById(vehiculoId);
+        if (!vehiculo.getPatente().equals(patente)) {
+            throw new IllegalArgumentException("La patente del resultado no coincide con el vehiculo");
+        }
+
+        if (resultado == ResultadoVerificacion.ROBADO && vehiculo.isActivo()) {
+            vehiculo.setActivo(false);
+            vehicleRepository.save(vehiculo);
+        }
+
+        eventoRepository.save(new EventoVerificacionProcesado(eventId, vehiculoId, resultado));
+        return true;
     }
 
     @Override
