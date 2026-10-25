@@ -42,6 +42,17 @@ class ResultadoVerificacionListenerTest {
         verifyNoInteractions(service);
     }
 
+    @Test
+    void rejectsInvalidJsonWithoutRequeueingIt() throws Exception {
+        VehicleService service = mock(VehicleService.class);
+        Channel channel = mock(Channel.class);
+
+        new ResultadoVerificacionListener(service).consumir(mensaje(73L, "no-es-json"), channel);
+
+        verify(channel).basicReject(73L, false);
+        verifyNoInteractions(service);
+    }
+
     private Message mensaje(long deliveryTag, String contenido) {
         MessageProperties properties = new MessageProperties();
         properties.setDeliveryTag(deliveryTag);

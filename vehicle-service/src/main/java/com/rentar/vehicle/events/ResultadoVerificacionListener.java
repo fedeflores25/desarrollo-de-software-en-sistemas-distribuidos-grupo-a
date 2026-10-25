@@ -52,7 +52,7 @@ public class ResultadoVerificacionListener {
                 log.error("No se pudo procesar resultado de verificacion; se reintentara", exception);
                 channel.basicNack(deliveryTag, false, true);
             }
-        } catch (IllegalArgumentException exception) {
+        } catch (Exception exception) {
             log.warn("Se descarta mensaje de verificacion mal formado: {}", exception.getMessage());
             channel.basicReject(deliveryTag, false);
         }
