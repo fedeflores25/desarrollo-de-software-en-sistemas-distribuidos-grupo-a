@@ -15,3 +15,11 @@ CREATE TABLE IF NOT EXISTS vehiculo (
     CONSTRAINT chk_vehiculo_anio CHECK (anio >= 1900),
     CONSTRAINT chk_vehiculo_precio CHECK (precio_diario > 0)
 );
+
+CREATE TABLE IF NOT EXISTS evento_verificacion_procesado (
+    event_id VARCHAR(36) PRIMARY KEY,
+    vehiculo_id BIGINT NOT NULL,
+    resultado VARCHAR(20) NOT NULL,
+    procesado_en DATETIME NOT NULL,
+    CONSTRAINT chk_evento_verificacion_resultado CHECK (resultado IN ('VALIDADO', 'ROBADO'))
+);

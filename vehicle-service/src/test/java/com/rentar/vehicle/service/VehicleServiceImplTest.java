@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,20 +18,31 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.rentar.vehicle.dto.VehicleCreateRequest;
+import com.rentar.vehicle.entity.EventoVerificacionProcesado;
 import com.rentar.vehicle.entity.Vehiculo;
 import com.rentar.vehicle.entity.enums.EstadoVehiculo;
+import com.rentar.vehicle.entity.enums.ResultadoVerificacion;
 import com.rentar.vehicle.entity.enums.TipoVehiculo;
+import com.rentar.vehicle.events.VerificacionPatenteSolicitadaEvent;
 import com.rentar.vehicle.exception.PatenteDuplicadaException;
 import com.rentar.vehicle.exception.VehiculoInactivoException;
 import com.rentar.vehicle.repository.VehicleRepository;
+import com.rentar.vehicle.repository.EventoVerificacionProcesadoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class VehicleServiceImplTest {
 
     @Mock
     private VehicleRepository vehicleRepository;
+
+    @Mock
+    private EventoVerificacionProcesadoRepository eventoRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private VehicleServiceImpl vehicleService;
@@ -50,6 +62,7 @@ class VehicleServiceImplTest {
         assertEquals(EstadoVehiculo.DISPONIBLE, savedVehicle.getEstado());
         assertEquals("ABC123", savedVehicle.getPatente());
         assertEquals(savedVehicle, result);
+        verify(eventPublisher).publishEvent(any(VerificacionPatenteSolicitadaEvent.class));
     }
 
     @Test
@@ -82,6 +95,32 @@ class VehicleServiceImplTest {
         assertThrows(
                 VehiculoInactivoException.class,
                 () -> vehicleService.updateStatus(1L, EstadoVehiculo.RESERVADO));
+    }
+
+    @Test
+    void stolenResultDeactivatesVehicleAndRecordsTheEvent() {
+        Vehiculo vehicle = vehicle(7L, EstadoVehiculo.DISPONIBLE, true);
+        when(eventoRepository.existsById("evento-1")).thenReturn(false);
+        when(vehicleRepository.findById(7L)).thenReturn(java.util.Optional.of(vehicle));
+
+        boolean processed = vehicleService.procesarResultadoVerificacion(
+                "evento-1", 7L, "PAT7", ResultadoVerificacion.ROBADO);
+
+        assertTrue(processed);
+        assertFalse(vehicle.isActivo());
+        verify(vehicleRepository).save(vehicle);
+        verify(eventoRepository).save(any(EventoVerificacionProcesado.class));
+    }
+
+    @Test
+    void duplicateResultDoesNotModifyVehicleAgain() {
+        when(eventoRepository.existsById("evento-duplicado")).thenReturn(true);
+
+        boolean processed = vehicleService.procesarResultadoVerificacion(
+                "evento-duplicado", 8L, "PAT8", ResultadoVerificacion.VALIDADO);
+
+        assertFalse(processed);
+        verify(vehicleRepository, never()).findById(8L);
     }
 
     private VehicleCreateRequest createRequest() {

@@ -7,6 +7,7 @@ import com.rentar.vehicle.dto.VehicleCreateRequest;
 import com.rentar.vehicle.dto.VehicleUpdateRequest;
 import com.rentar.vehicle.entity.Vehiculo;
 import com.rentar.vehicle.entity.enums.EstadoVehiculo;
+import com.rentar.vehicle.entity.enums.ResultadoVerificacion;
 
 public interface VehicleService {
 
@@ -23,6 +24,9 @@ public interface VehicleService {
     Vehiculo deactivate(Long id);
 
     Vehiculo updateStatus(Long id, EstadoVehiculo estado);
+
+    boolean procesarResultadoVerificacion(String eventId, Long vehiculoId, String patente,
+                                          ResultadoVerificacion resultado);
 
     List<Vehiculo> listAvailable(Collection<Long> excludedVehicleIds);
 }

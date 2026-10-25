@@ -148,3 +148,9 @@ La evidencia a guardar es: consola de RabbitMQ con el exchange y las dos colas, 
 la reserva confirmada sin esperar Maintenance, registros de ambos servicios y consulta final de
 la reserva con `mantenimiento` en `REALIZADO` y en `NO_REALIZADO`. Tambien se conserva la salida
 verde de los tests unitarios de Rental y Maintenance.
+
+Para la verificacion de patente, se crea un vehiculo y se comprueba en RabbitMQ el paso por las
+colas de solicitud y resultado. Luego se consulta `rentar_vehiculos.vehiculo` y
+`evento_verificacion_procesado`: un resultado `VALIDADO` conserva `activo = true`; un resultado
+`ROBADO` cambia el vehiculo a `activo = false` y deja el `event_id` registrado. Tambien se guarda
+la salida verde de los tests unitarios de Vehicle Service.
