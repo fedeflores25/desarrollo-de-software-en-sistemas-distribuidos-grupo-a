@@ -129,3 +129,22 @@ borrar los mensajes persistentes ni los datos del broker:
 ```powershell
 docker compose stop
 ```
+
+## Evidencia minima de pruebas
+
+Para probar el flujo de mantenimiento se inicia RabbitMQ y luego Rental Service. Se confirma
+una reserva con Maintenance Service detenido: la respuesta de la reserva debe llegar enseguida
+y la cola `maintenance.reserva.confirmada` debe conservar el mensaje. Despues se inicia
+Maintenance Service y se verifica que la solicitud se registra en `rentar_mantenimiento`, que
+la cola se vacia y que Rental actualiza el campo `mantenimiento` a `REALIZADO`.
+
+Para cubrir el segundo resultado se configura, antes de iniciar Maintenance Service:
+
+```powershell
+$env:MAINTENANCE_RESULTADO_NO_REALIZADO_VEHICLE_IDS = "<id-del-vehiculo>"
+```
+
+La evidencia a guardar es: consola de RabbitMQ con el exchange y las dos colas, respuesta de
+la reserva confirmada sin esperar Maintenance, registros de ambos servicios y consulta final de
+la reserva con `mantenimiento` en `REALIZADO` y en `NO_REALIZADO`. Tambien se conserva la salida
+verde de los tests unitarios de Rental y Maintenance.
