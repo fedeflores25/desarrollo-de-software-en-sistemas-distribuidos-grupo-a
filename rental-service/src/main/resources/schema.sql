@@ -23,3 +23,15 @@ CREATE TABLE IF NOT EXISTS reserva (
     INDEX idx_reserva_vehiculo_fechas (vehiculo_id, fecha_inicio, fecha_fin),
     INDEX idx_reserva_estado (estado)
 );
+
+-- Resultado del mantenimiento preventivo de cada reserva (Hito 3).
+-- Se crea PENDIENTE al confirmar la reserva y se actualiza con el evento mantenimiento.resultado.
+-- Las reservas anteriores al Hito 3 no tienen fila (mantenimiento sin informar).
+CREATE TABLE IF NOT EXISTS reserva_mantenimiento (
+    reserva_id BIGINT PRIMARY KEY,
+    estado VARCHAR(20) NOT NULL,
+    fecha_actualizacion DATETIME NOT NULL,
+    ultimo_event_id VARCHAR(36),
+    CONSTRAINT chk_mantenimiento_estado CHECK (estado IN ('PENDIENTE', 'REALIZADO', 'NO_REALIZADO')),
+    CONSTRAINT fk_mantenimiento_reserva FOREIGN KEY (reserva_id) REFERENCES reserva (id) ON DELETE CASCADE
+);

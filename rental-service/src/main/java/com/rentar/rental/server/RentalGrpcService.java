@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.rentar.rental.entity.Reserva;
+import com.rentar.rental.entity.enums.EstadoMantenimiento;
 import com.rentar.rental.entity.enums.EstadoReserva;
 import com.rentar.rental.exception.ReservaEstadoInvalidoException;
 import com.rentar.rental.exception.ReservaInvalidaException;
@@ -25,10 +27,12 @@ import com.rentar.rental.grpc.GetRentalHistoryRequest;
 import com.rentar.rental.grpc.GetReservationRequest;
 import com.rentar.rental.grpc.ListReservationsRequest;
 import com.rentar.rental.grpc.ListReservationsResponse;
+import com.rentar.rental.grpc.MaintenanceStatus;
 import com.rentar.rental.grpc.RentalServiceGrpc;
 import com.rentar.rental.grpc.Reservation;
 import com.rentar.rental.grpc.ReservationStatus;
 import com.rentar.rental.service.FiltroReserva;
+import com.rentar.rental.service.IMantenimientoService;
 import com.rentar.rental.service.IReservaService;
 
 import io.grpc.Status;
@@ -44,9 +48,11 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     private final IReservaService reservaService;
+    private final IMantenimientoService mantenimientoService;
 
-    public RentalGrpcService(IReservaService reservaService) {
+    public RentalGrpcService(IReservaService reservaService, IMantenimientoService mantenimientoService) {
         this.reservaService = reservaService;
+        this.mantenimientoService = mantenimientoService;
     }
 
     // ==========================================
@@ -250,6 +256,23 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
     }
 
     private Reservation aProto(Reserva reserva) {
+        return aProto(reserva, mantenimientoService.estados(List.of(reserva.getId())));
+    }
+
+    private MaintenanceStatus aMantenimientoProto(EstadoMantenimiento estado) {
+
+        if (estado == null) {
+            return MaintenanceStatus.MAINTENANCE_STATUS_UNSPECIFIED;
+        }
+
+        return switch (estado) {
+            case PENDIENTE -> MaintenanceStatus.PENDIENTE;
+            case REALIZADO -> MaintenanceStatus.REALIZADO;
+            case NO_REALIZADO -> MaintenanceStatus.NO_REALIZADO;
+        };
+    }
+
+    private Reservation aProto(Reserva reserva, Map<Long, EstadoMantenimiento> mantenimientos) {
 
         Reservation.Builder builder = Reservation.newBuilder()
                 .setId(reserva.getId())
@@ -261,7 +284,8 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
                 .setCantidadDias(reserva.getCantidadDias())
                 .setImporteTotal(reserva.getImporteTotal().doubleValue())
                 .setEstado(aProto(reserva.getEstado()))
-                .setFechaAlta(reserva.getFechaAlta().format(FORMATO_FECHA));
+                .setFechaAlta(reserva.getFechaAlta().format(FORMATO_FECHA))
+                .setMantenimiento(aMantenimientoProto(mantenimientos.get(reserva.getId())));
 
         if (reserva.getFechaCancelacion() != null) {
             builder.setFechaCancelacion(reserva.getFechaCancelacion().format(FORMATO_FECHA));
@@ -274,8 +298,12 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
 
         ListReservationsResponse.Builder builder = ListReservationsResponse.newBuilder();
 
+        // Una sola consulta con el mantenimiento de todas las reservas de la lista.
+        Map<Long, EstadoMantenimiento> mantenimientos = mantenimientoService.estados(
+                reservas.stream().map(Reserva::getId).toList());
+
         for (Reserva reserva : reservas) {
-            builder.addReservas(aProto(reserva));
+            builder.addReservas(aProto(reserva, mantenimientos));
         }
 
         return builder.build();

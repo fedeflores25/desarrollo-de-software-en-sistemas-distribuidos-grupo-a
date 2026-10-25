@@ -44,7 +44,7 @@ import io.grpc.StatusRuntimeException;
  * de servicio y la base MySQL local (hace falta MYSQL_PASSWORD y el servidor MySQL en marcha).
  * Usa ids de cliente y vehiculo propios y borra lo que crea al terminar cada prueba.
  */
-@SpringBootTest(properties = "rental.grpc.port=0")
+@SpringBootTest(properties = { "rental.grpc.port=0", "rental.eventos.habilitado=false" })
 class RentalGrpcIntegrationTest {
 
     private static final long CLIENTE = 910001L;

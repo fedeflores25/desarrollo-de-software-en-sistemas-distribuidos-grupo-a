@@ -52,7 +52,7 @@ Reglas comunes:
 - **Entrega al menos una vez.** RabbitMQ puede entregar un mensaje más de una vez, así que cada consumidor ignora un `eventId` que ya procesó.
 - **Publicar después de guardar.** Se publica el evento una vez confirmada la transacción en la base, nunca antes.
 - **Publicar no bloquea.** Si falla la publicación, la operación principal no se cancela: se registra el error y se sigue.
-- **Mensajes persistentes** y confirmación manual (`ack`) después de procesarlos.
+- **Mensajes persistentes** y confirmación (`ack`) después de procesarlos. Un mensaje mal formado se descarta sin reintentarlo.
 
 ## Flujo 1: verificación de patente al registrar un vehículo
 
@@ -110,3 +110,41 @@ Cómo se ve en el resto del sistema:
 - **Rental Service** guarda el resultado asociado a la reserva y lo informa en el campo `mantenimiento` de `Reservation` (`rental.proto`): `PENDIENTE` mientras no llegó el resultado, y después `REALIZADO` o `NO_REALIZADO`.
 - **Maintenance Service** es un servicio nuevo en Java con Spring Boot, con su propia base `rentar_mantenimiento` donde registra cada solicitud, y sin API gRPC: solo consume y publica eventos.
 - **Gateway y frontend** pueden mostrar el campo `mantenimiento` al consultar una reserva.
+
+## Ejecucion local con Docker
+
+Docker Desktop debe estar abierto solamente al probar la mensajeria real. Para crear
+el broker local, se copia `.env.example` como `.env` si se desean definir credenciales
+propias; si no existe `.env`, Docker Compose usa `guest` / `guest`.
+
+```powershell
+docker compose up -d
+docker compose ps
+```
+
+Cuando el servicio figure como `healthy`, RabbitMQ queda disponible en
+`localhost:5672` y su consola en `http://localhost:15672`. Para detenerlo sin
+borrar los mensajes persistentes ni los datos del broker:
+
+```powershell
+docker compose stop
+```
+
+## Evidencia minima de pruebas
+
+Para probar el flujo de mantenimiento se inicia RabbitMQ y luego Rental Service. Se confirma
+una reserva con Maintenance Service detenido: la respuesta de la reserva debe llegar enseguida
+y la cola `maintenance.reserva.confirmada` debe conservar el mensaje. Despues se inicia
+Maintenance Service y se verifica que la solicitud se registra en `rentar_mantenimiento`, que
+la cola se vacia y que Rental actualiza el campo `mantenimiento` a `REALIZADO`.
+
+Para cubrir el segundo resultado se configura, antes de iniciar Maintenance Service:
+
+```powershell
+$env:MAINTENANCE_RESULTADO_NO_REALIZADO_VEHICLE_IDS = "<id-del-vehiculo>"
+```
+
+La evidencia a guardar es: consola de RabbitMQ con el exchange y las dos colas, respuesta de
+la reserva confirmada sin esperar Maintenance, registros de ambos servicios y consulta final de
+la reserva con `mantenimiento` en `REALIZADO` y en `NO_REALIZADO`. Tambien se conserva la salida
+verde de los tests unitarios de Rental y Maintenance.
