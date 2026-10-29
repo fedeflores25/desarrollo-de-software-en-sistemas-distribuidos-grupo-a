@@ -3,6 +3,7 @@ package com.rentar.vehicle.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -24,7 +25,9 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.rentar.vehicle.dto.SolicitudVehiculoExternoRequest;
 import com.rentar.vehicle.entity.SolicitudVehiculoExterno;
+import com.rentar.vehicle.entity.Vehiculo;
 import com.rentar.vehicle.entity.enums.EstadoIncorporacionExterna;
+import com.rentar.vehicle.entity.enums.EstadoVehiculo;
 import com.rentar.vehicle.entity.enums.ResultadoValidacionExterna;
 import com.rentar.vehicle.entity.enums.TipoVehiculo;
 import com.rentar.vehicle.events.VehiculoExternoRegistradoEvent;
@@ -213,6 +216,53 @@ class SolicitudVehiculoExternoServiceImplTest {
 
         verify(eventPublisher, never()).publishEvent(
                 any(VehiculoExternoValidacionCompletadaEvent.class));
+    }
+
+    @Test
+    void incorporarConAmbasValidacionesCreaVehiculoDisponible() {
+
+        SolicitudVehiculoExterno solicitud = entidadPendiente();
+        solicitud.setResultadoPatente(ResultadoValidacionExterna.VALIDADO);
+        solicitud.setResultadoTitularidad(ResultadoValidacionExterna.VALIDADO);
+
+        when(solicitudRepository.buscarParaActualizar(10L))
+                .thenReturn(Optional.of(solicitud));
+
+        when(vehicleRepository.save(any(Vehiculo.class)))
+                .thenAnswer(invocation -> {
+                    Vehiculo vehiculo = invocation.getArgument(0);
+                    vehiculo.setId(77L);
+                    return vehiculo;
+                });
+
+        service.incorporar(10L);
+
+        ArgumentCaptor<Vehiculo> captor =
+                ArgumentCaptor.forClass(Vehiculo.class);
+
+        verify(vehicleRepository).existsByPatente("EXT104");
+        verify(vehicleRepository).save(captor.capture());
+
+        Vehiculo vehiculo = captor.getValue();
+
+        assertEquals(77L, vehiculo.getId());
+        assertEquals("EXT104", vehiculo.getPatente());
+        assertEquals("Toyota", vehiculo.getMarca());
+        assertEquals("Corolla", vehiculo.getModelo());
+        assertEquals(2022, vehiculo.getAnio());
+        assertEquals("Blanco", vehiculo.getColor());
+        assertEquals(TipoVehiculo.SEDAN, vehiculo.getTipo());
+        assertEquals(0, new BigDecimal("45000.00")
+                .compareTo(vehiculo.getPrecioDiario()));
+        assertEquals(EstadoVehiculo.DISPONIBLE, vehiculo.getEstado());
+        assertTrue(vehiculo.isActivo());
+
+        assertEquals(
+                EstadoIncorporacionExterna.INCORPORADA,
+                solicitud.getEstado());
+        assertEquals(77L, solicitud.getVehiculoId());
+
+        verify(solicitudRepository).save(solicitud);
     }
 
     @Test
