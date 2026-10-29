@@ -2,67 +2,163 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 
-// 1. Importar los strings y funciones de GraphQL
+// Documentacion Swagger/OpenAPI.
+const swaggerUi = require('swagger-ui-express');
+const openapi = require('./openapi');
+
+// Esquemas y resolvers GraphQL.
 const customerGraphQL = require('./controllers/graphql/customerGraphQL');
 const vehicleGraphQL = require('./controllers/graphql/vehicleGraphQL');
 const rentalGraphQL = require('./controllers/graphql/rentalGraphQL');
 
-// 2. Importar los routers de REST
+// Controladores REST.
 const customerRouter = require('./controllers/rest/customerController');
 const vehicleRouter = require('./controllers/rest/vehicleController');
-const rentalRouter = require('./controllers/rest/rentalController'); 
+const rentalRouter = require('./controllers/rest/rentalController');
 
 const app = express();
 app.use(express.json());
 
-// --- CONFIGURACIÓN GRAPHQL UNIFICADA ---
-// Pegamos los "tipos" de cada archivo y declaramos un único "type Query" y "type Mutation"
+// Configuracion del esquema GraphQL unificado.
 const schema = buildSchema(`
   ${customerGraphQL.schemaString}
   ${vehicleGraphQL.schemaString}
   ${rentalGraphQL.schemaString}
 
+  """Consultas disponibles para clientes, vehículos y reservas."""
   type Query {
-    clientes(soloActivos: Boolean): [Cliente]
-    cliente(id: ID!): Cliente
-    
-    vehiculos(filtro: VehiculoFiltroInput, soloActivos: Boolean): [Vehiculo]
-    vehiculo(id: ID!): Vehiculo
-    vehiculosDisponibles(filtro: DisponibilidadFiltroInput!): [Vehiculo]
-    
-    reservas(filtro: ReservaFiltroInput): [Reservation]
-    reserva(id: ID!): Reservation
-    historial(cliente_id: ID!): [Reservation]
+
+    """Lista clientes y permite consultar solamente los activos."""
+    clientes(
+      """Si es true, devuelve solamente clientes activos."""
+      soloActivos: Boolean
+    ): [Cliente]
+
+    """Consulta un cliente por su identificador."""
+    cliente(
+      """Identificador del cliente."""
+      id: ID!
+    ): Cliente
+
+    """Lista vehículos aplicando filtros opcionales."""
+    vehiculos(
+      """Filtros por tipo, marca, modelo y precio."""
+      filtro: VehiculoFiltroInput
+
+      """Si es true, devuelve solamente vehículos activos."""
+      soloActivos: Boolean
+    ): [Vehiculo]
+
+    """Consulta un vehículo por su identificador."""
+    vehiculo(
+      """Identificador del vehículo."""
+      id: ID!
+    ): Vehiculo
+
+    """
+    Consulta los vehículos disponibles en un período.
+    Considera las fechas solicitadas y los filtros opcionales.
+    """
+    vehiculosDisponibles(
+      """Período y filtros de búsqueda."""
+      filtro: DisponibilidadFiltroInput!
+    ): [Vehiculo]
+
+    """Lista reservas aplicando filtros opcionales."""
+    reservas(
+      """Filtros por cliente, vehículo, tipo, estado y fechas."""
+      filtro: ReservaFiltroInput
+    ): [Reservation]
+
+    """Consulta una reserva por su identificador."""
+    reserva(
+      """Identificador de la reserva."""
+      id: ID!
+    ): Reservation
+
+    """Obtiene el historial de reservas de un cliente."""
+    historial(
+      """Identificador del cliente."""
+      cliente_id: ID!
+    ): [Reservation]
   }
 
+  """Operaciones para crear y modificar recursos."""
   type Mutation {
-    crearCliente(input: ClienteInput!): Cliente
-    desactivarCliente(id: ID!): Cliente
-    crearReserva(input: CreateReservationInput!): Reservation
-    cancelarReserva(id: ID!): Reservation
+
+    """
+    Registra un nuevo cliente.
+    Valida los datos obligatorios y la unicidad
+    del documento y del correo electrónico.
+    """
+    crearCliente(
+      """Datos del cliente que se desea registrar."""
+      input: ClienteInput!
+    ): Cliente
+
+    """
+    Realiza la baja lógica de un cliente.
+    El cliente permanece registrado como inactivo.
+    """
+    desactivarCliente(
+      """Identificador del cliente."""
+      id: ID!
+    ): Cliente
+
+    """
+    Crea una reserva para un cliente y un vehículo.
+    Verifica las condiciones necesarias para confirmar
+    la operación.
+    """
+    crearReserva(
+      """Cliente, vehículo y período solicitado."""
+      input: CreateReservationInput!
+    ): Reservation
+
+    """
+    Cancela una reserva existente.
+    La operación respeta las restricciones
+    del estado actual de la reserva.
+    """
+    cancelarReserva(
+      """Identificador de la reserva."""
+      id: ID!
+    ): Reservation
   }
 `);
 
-// Unimos todas las funciones (resolvers) en un solo objeto
+// Unificacion de resolvers.
 const rootValue = {
-    ...customerGraphQL.rootValue,
-    ...vehicleGraphQL.rootValue,
-    ...rentalGraphQL.rootValue
+  ...customerGraphQL.rootValue,
+  ...vehicleGraphQL.rootValue,
+  ...rentalGraphQL.rootValue
 };
 
-// Exponemos el único endpoint oficial de GraphQL
+// Configuracion del endpoint GraphQL.
 app.use('/graphql', graphqlHTTP({
   schema: schema,
   rootValue: rootValue,
-  graphiql: true, // Interfaz visual en http://localhost:8080/graphql
+  graphiql: true,
 }));
 
-// --- CONFIGURACIÓN REST ---
+// Documentacion REST mediante Swagger/OpenAPI.
+app.get('/api-docs.json', (req, res) => res.json(openapi));
+
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(openapi)
+);
+
+// Registro de rutas REST.
 app.use('/api/clientes', customerRouter);
 app.use('/api/vehiculos', vehicleRouter);
 app.use('/api/reservas', rentalRouter);
 
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
-    console.log(`🚀 API Gateway orquestando en el puerto ${PORT}`);
+  console.log(`API Gateway orquestando en el puerto ${PORT}`);
+  console.log(`Swagger disponible en http://localhost:${PORT}/api-docs`);
+  console.log(`GraphQL disponible en http://localhost:${PORT}/graphql`);
 });
