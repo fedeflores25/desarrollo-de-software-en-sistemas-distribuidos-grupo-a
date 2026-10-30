@@ -1,25 +1,29 @@
 syntax = "proto3";
 
-// Contrato del Rental Service (Hito 2 - RPC).
+// Contrato del Rental Service (Hito 2 y Hito 3).
 //
-// Responsabilidades: crear y cancelar reservas, consultarlas, historial de
-// alquileres y control de solapamiento de periodos. Guarda solo los ids de cliente
-// y vehiculo (sin foreign keys): el Gateway es quien completa esos datos llamando
-// al Customer Service y al Vehicle Service.
+// Responsabilidades: crear, cancelar y consultar reservas, obtener el
+// historial de alquileres y verificar la ocupacion de vehiculos.
 //
-// Fechas: string ISO-8601 sin zona horaria, ej: "2026-10-05T10:00:00".
+// Se almacenan los identificadores de clientes y vehiculos sin claves
+// foraneas. El Gateway obtiene los datos de los servicios correspondientes.
+//
+// Fechas: formato ISO-8601 sin zona horaria.
+// Ejemplo: "2026-10-05T10:00:00".
 //
 // Errores (codigos gRPC):
-//   NOT_FOUND            la reserva no existe
-//   INVALID_ARGUMENT     fechas invalidas (fin no posterior a inicio, inicio no futuro)
-//   FAILED_PRECONDITION  el vehiculo esta ocupado en ese periodo, o la reserva no se
-//                        puede cancelar (no esta CONFIRMADA o su periodo ya comenzo)
+//   NOT_FOUND            la reserva no existe.
+//   INVALID_ARGUMENT     datos obligatorios o fechas invalidas.
+//   FAILED_PRECONDITION  operacion no permitida por el estado de la reserva
+//                        o por la ocupacion del vehiculo.
+//   INTERNAL             error interno del servicio.
 
 package rentar.rental.v1;
 
 option java_multiple_files = true;
 option java_package = "com.rentar.rental.grpc";
 
+// Estados posibles de una reserva.
 enum ReservationStatus {
   RESERVATION_STATUS_UNSPECIFIED = 0;
   RESERVATION_STATUS_CONFIRMADA = 1;
@@ -27,9 +31,8 @@ enum ReservationStatus {
   RESERVATION_STATUS_FINALIZADA = 3;
 }
 
-// Resultado del mantenimiento preventivo asociado a la reserva (Hito 3).
-// Lo informa el Maintenance Service por evento (mantenimiento.resultado) y el Rental
-// Service lo guarda. Mientras no llega el resultado la reserva figura como PENDIENTE.
+// Estados del mantenimiento preventivo asociado a una reserva.
+// El resultado se recibe de forma asincronica mediante RabbitMQ.
 enum MaintenanceStatus {
   MAINTENANCE_STATUS_UNSPECIFIED = 0;
   MAINTENANCE_STATUS_PENDIENTE = 1;
@@ -37,102 +40,170 @@ enum MaintenanceStatus {
   MAINTENANCE_STATUS_NO_REALIZADO = 3;
 }
 
+// Datos de una reserva registrada en el sistema.
 message Reservation {
   int64 id = 1;
   int64 cliente_id = 2;
   int64 vehiculo_id = 3;
+
+  // Fecha y hora de inicio en formato ISO-8601 sin zona horaria.
   string fecha_inicio = 4;
+
+  // Fecha y hora de finalizacion en formato ISO-8601 sin zona horaria.
   string fecha_fin = 5;
 
-  // Copia del precio diario del vehiculo al momento de reservar.
+  // Precio diario del vehiculo al momento de realizar la reserva.
   double precio_diario = 6;
+
+  // Cantidad de dias correspondientes al periodo de alquiler.
   int32 cantidad_dias = 7;
+
+  // Importe total calculado para la reserva.
   double importe_total = 8;
+
+  // Estado actual de la reserva.
   ReservationStatus estado = 9;
+
+  // Fecha y hora de registro de la reserva.
   string fecha_alta = 10;
 
-  // Vacio si la reserva no fue cancelada.
+  // Fecha y hora de cancelacion. Vacio si no fue cancelada.
   string fecha_cancelacion = 11;
 
-  // Mantenimiento preventivo de la reserva (Hito 3).
-  // UNSPECIFIED indica que no hay un estado informado.
+  // Estado del mantenimiento preventivo (Hito 3).
+  // UNSPECIFIED indica que no se informo un estado.
   MaintenanceStatus mantenimiento = 12;
 }
 
 service RentalService {
 
-  // Crea la reserva en estado CONFIRMADA.
-  // El Gateway verifica previamente el cliente y el vehiculo.
+  // Registra una nueva reserva en estado CONFIRMADA.
+  // El Gateway verifica previamente la existencia y el estado activo
+  // del cliente y del vehiculo, y proporciona el precio diario.
+  // Se validan las fechas, la disponibilidad y el solapamiento.
+  // Se calculan la cantidad de dias y el importe total.
+  // INVALID_ARGUMENT si los identificadores o las fechas son invalidos.
+  // FAILED_PRECONDITION si el vehiculo esta ocupado en el periodo.
   rpc CreateReservation(CreateReservationRequest)
       returns (Reservation);
 
-  // Cancela una reserva confirmada que todavia no comenzo.
+  // Cancela una reserva existente sin eliminarla de la base de datos.
+  // Se permite cancelar solamente reservas CONFIRMADAS cuyo periodo
+  // de alquiler todavia no haya comenzado.
+  // La cancelacion libera el periodo para nuevas reservas.
+  // INVALID_ARGUMENT si el identificador es invalido.
+  // NOT_FOUND si la reserva no existe.
+  // FAILED_PRECONDITION si la reserva no puede cancelarse.
   rpc CancelReservation(CancelReservationRequest)
       returns (Reservation);
 
-  // Consulta una reserva por su identificador.
+  // Consulta una reserva mediante su identificador.
+  // Devuelve sus datos, fechas, importe y estado actual.
+  // INVALID_ARGUMENT si el identificador es menor o igual a cero.
+  // NOT_FOUND si la reserva no existe.
   rpc GetReservation(GetReservationRequest)
       returns (Reservation);
 
-  // Lista reservas aplicando filtros opcionales.
+  // Lista las reservas registradas aplicando filtros opcionales.
+  // Permite filtrar por cliente, vehiculos, estado y rango de fechas.
+  // El Gateway puede obtener los identificadores de vehiculos
+  // desde Vehicle Service para aplicar filtros por tipo.
+  // Sin filtros, devuelve todas las reservas.
+  // INVALID_ARGUMENT si alguno de los filtros es invalido.
   rpc ListReservations(ListReservationsRequest)
       returns (ListReservationsResponse);
 
   // Obtiene el historial de reservas de un cliente.
-  // Utiliza un tipo de respuesta exclusivo de esta operacion.
+  // Incluye reservas canceladas y finalizadas.
+  // Una reserva CONFIRMADA cuya fecha de finalizacion ya paso
+  // se considera finalizada para la consulta del historial.
+  // Devuelve una respuesta exclusiva de esta operacion.
+  // INVALID_ARGUMENT si el identificador del cliente es invalido.
   rpc GetRentalHistory(GetRentalHistoryRequest)
       returns (GetRentalHistoryResponse);
 
-  // Devuelve los ids de vehiculos ocupados en un periodo.
+  // Obtiene los identificadores de vehiculos ocupados en un periodo.
+  // Se consideran las reservas CONFIRMADAS que se solapan
+  // con las fechas solicitadas.
+  // El Gateway utiliza estos identificadores junto con Vehicle
+  // Service para determinar la disponibilidad.
+  // INVALID_ARGUMENT si las fechas son invalidas.
   rpc GetBusyVehicleIds(GetBusyVehicleIdsRequest)
       returns (GetBusyVehicleIdsResponse);
 }
 
+// Datos necesarios para crear una reserva.
 message CreateReservationRequest {
   int64 cliente_id = 1;
   int64 vehiculo_id = 2;
+
+  // Fecha de inicio en formato YYYY-MM-DDTHH:mm:ss.
   string fecha_inicio = 3;
+
+  // Fecha de fin en formato YYYY-MM-DDTHH:mm:ss.
+  // Debe ser posterior a la fecha de inicio.
   string fecha_fin = 4;
+
+  // Precio diario obtenido previamente por el Gateway.
   double precio_diario = 5;
 }
 
+// Identificador de la reserva que se desea cancelar.
 message CancelReservationRequest {
   int64 id = 1;
 }
 
+// Identificador de la reserva que se desea consultar.
 message GetReservationRequest {
   int64 id = 1;
 }
 
+// Filtros opcionales para consultar reservas.
 message ListReservationsRequest {
-  // Todos los filtros son opcionales.
+
+  // Identificador del cliente.
   optional int64 cliente_id = 1;
+
+  // Identificadores de los vehiculos que se desean consultar.
   repeated int64 vehiculo_ids = 2;
+
+  // Estado de la reserva.
+  // UNSPECIFIED no aplica filtro por estado.
   optional ReservationStatus estado = 3;
 
-  // Rango de fechas sobre fecha_inicio, en formato ISO-8601.
+  // Fecha inicial del rango de consulta en formato ISO-8601.
   optional string desde = 4;
+
+  // Fecha final del rango de consulta en formato ISO-8601.
   optional string hasta = 5;
 }
 
+// Respuesta para el listado general de reservas.
 message ListReservationsResponse {
   repeated Reservation reservas = 1;
 }
 
+// Identificador del cliente cuyo historial se desea consultar.
 message GetRentalHistoryRequest {
   int64 cliente_id = 1;
 }
 
-// Respuesta exclusiva para la consulta del historial de alquileres.
+// Respuesta exclusiva para el historial de alquileres.
 message GetRentalHistoryResponse {
   repeated Reservation reservas = 1;
 }
 
+// Periodo utilizado para consultar vehiculos ocupados.
 message GetBusyVehicleIdsRequest {
+
+  // Fecha y hora de inicio en formato ISO-8601 sin zona horaria.
   string fecha_inicio = 1;
+
+  // Fecha y hora de fin en formato ISO-8601 sin zona horaria.
   string fecha_fin = 2;
 }
 
+// Identificadores de vehiculos ocupados en el periodo solicitado.
 message GetBusyVehicleIdsResponse {
   repeated int64 vehiculo_ids = 1;
 }

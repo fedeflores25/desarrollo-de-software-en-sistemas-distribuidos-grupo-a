@@ -1,24 +1,26 @@
- syntax = "proto3";
+syntax = "proto3";
 
 // Contrato del Vehicle Service (Hito 2 y Hito 3).
 //
 // Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
 // consulta de disponibilidad y actualizacion de estado.
 //
-// Hito 3: incorpora la solicitud de vehiculos externos y la consulta de
-// su estado. Las validaciones se realizan de manera asincronica por RabbitMQ.
+// Hito 3: incorpora solicitudes de vehiculos externos y la consulta de
+// su estado. Las validaciones se realizan de manera asincronica con RabbitMQ.
 //
 // Errores (codigos gRPC):
-//   NOT_FOUND            el vehiculo o solicitud no existe
-//   ALREADY_EXISTS       la patente ya esta registrada
-//   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
-//   FAILED_PRECONDITION  operacion no permitida por el estado
+//   NOT_FOUND            el vehiculo o la solicitud no existe.
+//   ALREADY_EXISTS       la patente ya esta registrada.
+//   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos.
+//   FAILED_PRECONDITION  operacion no permitida por el estado del vehiculo.
+//   INTERNAL             error interno del servicio.
 
 package rentar.vehicle.v1;
 
 option java_multiple_files = true;
 option java_package = "com.rentar.vehicle.grpc";
 
+// Tipos de vehiculos admitidos por el sistema.
 enum VehicleType {
   VEHICLE_TYPE_UNSPECIFIED = 0;
   VEHICLE_TYPE_SEDAN = 1;
@@ -28,6 +30,7 @@ enum VehicleType {
   VEHICLE_TYPE_HATCHBACK = 5;
 }
 
+// Estados operativos de los vehiculos.
 enum VehicleStatus {
   VEHICLE_STATUS_UNSPECIFIED = 0;
   VEHICLE_STATUS_DISPONIBLE = 1;
@@ -35,6 +38,7 @@ enum VehicleStatus {
   VEHICLE_STATUS_EN_ALQUILER = 3;
 }
 
+// Datos de un vehiculo registrado en el sistema.
 message Vehicle {
   int64 id = 1;
   string patente = 2;
@@ -50,46 +54,81 @@ message Vehicle {
 
 service VehicleService {
 
-  // Operaciones originales del Hito 2.
-
+  // Lista los vehiculos registrados.
+  // Permite filtrar por identificadores, estado activo, tipo,
+  // marca, modelo y rango de precios.
+  // Sin filtros, devuelve todos los vehiculos.
   rpc ListVehicles(ListVehiclesRequest)
       returns (ListVehiclesResponse);
 
+  // Consulta un vehiculo mediante su identificador.
+  // NOT_FOUND si el vehiculo no existe.
   rpc GetVehicle(GetVehicleRequest)
       returns (Vehicle);
 
+  // Consulta un vehiculo mediante su patente.
+  // INVALID_ARGUMENT si la patente esta vacia.
+  // NOT_FOUND si no existe un vehiculo con esa patente.
   rpc GetVehicleByPatente(GetVehicleByPatenteRequest)
       returns (Vehicle);
 
+  // Registra un nuevo vehiculo en el sistema.
+  // Valida los datos obligatorios, el tipo y el precio diario.
+  // INVALID_ARGUMENT si los datos son invalidos.
+  // ALREADY_EXISTS si la patente ya esta registrada.
   rpc CreateVehicle(CreateVehicleRequest)
       returns (Vehicle);
 
+  // Actualiza los datos de un vehiculo existente.
+  // Permite modificar marca, modelo, anio, color, tipo y precio diario.
+  // La patente no se modifica mediante esta operacion.
+  // Valida los campos obligatorios, el tipo y el precio.
+  // NOT_FOUND si el vehiculo no existe.
+  // INVALID_ARGUMENT si los datos son invalidos.
   rpc UpdateVehicle(UpdateVehicleRequest)
       returns (Vehicle);
 
+  // Realiza la baja logica de un vehiculo.
+  // El vehiculo permanece registrado con activo = false.
+  // NOT_FOUND si el vehiculo no existe.
   rpc DeactivateVehicle(DeactivateVehicleRequest)
       returns (Vehicle);
 
+  // Modifica el estado operativo de un vehiculo.
+  // Se admiten los estados DISPONIBLE, RESERVADO y EN_ALQUILER.
+  // INVALID_ARGUMENT si el estado no es valido.
+  // NOT_FOUND si el vehiculo no existe.
+  // FAILED_PRECONDITION si la operacion no esta permitida.
   rpc UpdateVehicleStatus(UpdateVehicleStatusRequest)
       returns (Vehicle);
 
+  // Consulta los vehiculos disponibles para alquilar.
+  // Permite aplicar filtros y excluir identificadores de vehiculos.
+  // Devuelve una respuesta exclusiva de esta operacion.
   rpc ListAvailableVehicles(ListAvailableVehiclesRequest)
       returns (ListAvailableVehiclesResponse);
 
-  // Hito 3: incorporacion de vehiculos externos.
-
-  // Registra la solicitud como PENDIENTE.
-  // Las validaciones se procesan de forma asincronica.
+  // Registra una solicitud de incorporacion de un vehiculo externo.
+  // Valida los datos obligatorios del cliente y del vehiculo.
+  // La solicitud se registra inicialmente como PENDIENTE.
+  // Las validaciones de patente y titularidad se realizan
+  // de manera asincronica mediante RabbitMQ.
+  // INVALID_ARGUMENT si los datos son invalidos.
   rpc CreateExternalVehicleApplication(
       CreateExternalVehicleApplicationRequest)
       returns (ExternalVehicleApplication);
 
   // Consulta el estado actual de una solicitud externa.
+  // Permite conocer los resultados de las validaciones
+  // y el identificador del vehiculo si fue incorporado.
+  // INVALID_ARGUMENT si el identificador es invalido.
+  // NOT_FOUND si la solicitud no existe.
   rpc GetExternalVehicleApplication(
       GetExternalVehicleApplicationRequest)
       returns (ExternalVehicleApplication);
 }
 
+// Filtros opcionales para consultar vehiculos.
 message VehicleFilter {
   optional VehicleType tipo = 1;
   optional string marca = 2;
@@ -99,8 +138,15 @@ message VehicleFilter {
 }
 
 message ListVehiclesRequest {
+
+  // Filtros opcionales de tipo, marca, modelo y precio.
   VehicleFilter filtro = 1;
+
+  // Identificadores que se desean consultar.
   repeated int64 ids = 2;
+
+  // true: devuelve solamente vehiculos activos.
+  // false o sin informar: devuelve activos e inactivos.
   optional bool solo_activos = 3;
 }
 
@@ -127,7 +173,10 @@ message CreateVehicleRequest {
 }
 
 message UpdateVehicleRequest {
+
+  // Identificador del vehiculo que se desea actualizar.
   int64 id = 1;
+
   string marca = 2;
   string modelo = 3;
   int32 anio = 4;
@@ -146,7 +195,11 @@ message UpdateVehicleStatusRequest {
 }
 
 message ListAvailableVehiclesRequest {
+
+  // Filtros opcionales para consultar vehiculos disponibles.
   VehicleFilter filtro = 1;
+
+  // Identificadores de vehiculos que deben excluirse.
   repeated int64 excluir_ids = 2;
 }
 
@@ -172,7 +225,7 @@ message CreateExternalVehicleApplicationRequest {
   double precio_diario = 9;
 }
 
-// Identificador de una solicitud existente.
+// Identificador de una solicitud externa existente.
 message GetExternalVehicleApplicationRequest {
   int64 id = 1;
 }
