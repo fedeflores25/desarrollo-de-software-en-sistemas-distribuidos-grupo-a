@@ -24,6 +24,7 @@ import com.rentar.rental.grpc.CreateReservationRequest;
 import com.rentar.rental.grpc.GetBusyVehicleIdsRequest;
 import com.rentar.rental.grpc.GetBusyVehicleIdsResponse;
 import com.rentar.rental.grpc.GetRentalHistoryRequest;
+import com.rentar.rental.grpc.GetRentalHistoryResponse;
 import com.rentar.rental.grpc.GetReservationRequest;
 import com.rentar.rental.grpc.ListReservationsRequest;
 import com.rentar.rental.grpc.ListReservationsResponse;
@@ -55,9 +56,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         this.mantenimientoService = mantenimientoService;
     }
 
-    // ==========================================
     // CREAR RESERVA
-    // ==========================================
 
     @Override
     public void createReservation(
@@ -80,9 +79,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
-    // ==========================================
     // CANCELAR RESERVA
-    // ==========================================
 
     @Override
     public void cancelReservation(
@@ -97,9 +94,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
-    // ==========================================
     // CONSULTAR UNA RESERVA POR ID
-    // ==========================================
 
     @Override
     public void getReservation(
@@ -114,9 +109,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
-    // ==========================================
     // LISTAR RESERVAS CON FILTROS
-    // ==========================================
 
     @Override
     public void listReservations(
@@ -136,26 +129,27 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
-    // ==========================================
     // HISTORIAL DE UN CLIENTE
-    // ==========================================
 
     @Override
     public void getRentalHistory(
             GetRentalHistoryRequest request,
-            StreamObserver<ListReservationsResponse> responseObserver) {
+            StreamObserver<GetRentalHistoryResponse> responseObserver) {
 
         responder(responseObserver, () -> {
 
             validarId(request.getClienteId(), "cliente_id");
 
-            return aRespuesta(reservaService.historial(request.getClienteId()));
+            ListReservationsResponse reservas =
+                    aRespuesta(reservaService.historial(request.getClienteId()));
+
+            return GetRentalHistoryResponse.newBuilder()
+                    .addAllReservas(reservas.getReservasList())
+                    .build();
         });
     }
 
-    // ==========================================
     // VEHICULOS OCUPADOS EN UN PERIODO
-    // ==========================================
 
     @Override
     public void getBusyVehicleIds(
@@ -174,9 +168,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
-    // ==========================================
     // RESPUESTA Y MAPEO DE ERRORES A STATUS GRPC
-    // ==========================================
 
     private <T> void responder(StreamObserver<T> observer, Supplier<T> accion) {
 
@@ -212,9 +204,7 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         observer.onCompleted();
     }
 
-    // ==========================================
     // VALIDACION Y CONVERSIONES
-    // ==========================================
 
     private void validarId(long id, String campo) {
         if (id <= 0) {

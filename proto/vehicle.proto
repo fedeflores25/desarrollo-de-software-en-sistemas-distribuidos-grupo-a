@@ -1,18 +1,18 @@
- // Contrato del Vehicle Service (Hito 2 y Hito 3).
- //
- // Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
- // consulta de disponibilidad y actualizacion de estado.
- //
- // Hito 3: incorpora la solicitud de vehiculos externos y la consulta de
- // su estado. Las validaciones se realizan de manera asincronica por RabbitMQ.
- //
- // Errores (codigos gRPC):
- //   NOT_FOUND            el vehiculo o solicitud no existe
- //   ALREADY_EXISTS       la patente ya esta registrada
- //   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
- //   FAILED_PRECONDITION  operacion no permitida por el estado
+ syntax = "proto3";
 
-syntax = "proto3";
+// Contrato del Vehicle Service (Hito 2 y Hito 3).
+//
+// Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
+// consulta de disponibilidad y actualizacion de estado.
+//
+// Hito 3: incorpora la solicitud de vehiculos externos y la consulta de
+// su estado. Las validaciones se realizan de manera asincronica por RabbitMQ.
+//
+// Errores (codigos gRPC):
+//   NOT_FOUND            el vehiculo o solicitud no existe
+//   ALREADY_EXISTS       la patente ya esta registrada
+//   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
+//   FAILED_PRECONDITION  operacion no permitida por el estado
 
 package rentar.vehicle.v1;
 
@@ -74,7 +74,7 @@ service VehicleService {
       returns (Vehicle);
 
   rpc ListAvailableVehicles(ListAvailableVehiclesRequest)
-      returns (ListVehiclesResponse);
+      returns (ListAvailableVehiclesResponse);
 
   // Hito 3: incorporacion de vehiculos externos.
 
@@ -148,6 +148,11 @@ message UpdateVehicleStatusRequest {
 message ListAvailableVehiclesRequest {
   VehicleFilter filtro = 1;
   repeated int64 excluir_ids = 2;
+}
+
+// Respuesta exclusiva para la consulta de vehiculos disponibles.
+message ListAvailableVehiclesResponse {
+  repeated Vehicle vehiculos = 1;
 }
 
 // -------------------------------------------------------

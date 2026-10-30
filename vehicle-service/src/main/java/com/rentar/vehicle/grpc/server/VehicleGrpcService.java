@@ -25,6 +25,7 @@ import com.rentar.vehicle.grpc.DeactivateVehicleRequest;
 import com.rentar.vehicle.grpc.GetVehicleRequest;
 import com.rentar.vehicle.grpc.GetVehicleByPatenteRequest;
 import com.rentar.vehicle.grpc.ListAvailableVehiclesRequest;
+import com.rentar.vehicle.grpc.ListAvailableVehiclesResponse;
 import com.rentar.vehicle.grpc.ListVehiclesRequest;
 import com.rentar.vehicle.grpc.ListVehiclesResponse;
 import com.rentar.vehicle.grpc.UpdateVehicleRequest;
@@ -167,7 +168,7 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
     @Override
     public void listAvailableVehicles(
             ListAvailableVehiclesRequest request,
-            StreamObserver<ListVehiclesResponse> responseObserver) {
+            StreamObserver<ListAvailableVehiclesResponse> responseObserver) {
 
         respond(responseObserver, () -> {
             List<Vehiculo> vehicles =
@@ -177,7 +178,12 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
                 vehicles = applyFilter(vehicles, request.getFiltro());
             }
 
-            return toListResponse(vehicles);
+            return ListAvailableVehiclesResponse.newBuilder()
+                    .addAllVehiculos(
+                            vehicles.stream()
+                                    .map(this::toGrpcVehicle)
+                                    .toList())
+                    .build();
         });
     }
 

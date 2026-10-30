@@ -33,7 +33,7 @@ import com.rentar.vehicle.grpc.GetExternalVehicleApplicationRequest;
 import com.rentar.vehicle.grpc.GetVehicleByPatenteRequest;
 import com.rentar.vehicle.grpc.GetVehicleRequest;
 import com.rentar.vehicle.grpc.ListAvailableVehiclesRequest;
-import com.rentar.vehicle.grpc.ListVehiclesResponse;
+import com.rentar.vehicle.grpc.ListAvailableVehiclesResponse;
 import com.rentar.vehicle.grpc.Vehicle;
 import com.rentar.vehicle.grpc.VehicleStatus;
 import com.rentar.vehicle.grpc.VehicleType;
@@ -142,7 +142,7 @@ class VehicleGrpcServiceTest {
         VehicleGrpcService grpcService =
                 new VehicleGrpcService(vehicleService, solicitudService);
 
-        TestObserver<ListVehiclesResponse> observer =
+        TestObserver<ListAvailableVehiclesResponse> observer =
                 new TestObserver<>();
 
         ListAvailableVehiclesRequest request =
