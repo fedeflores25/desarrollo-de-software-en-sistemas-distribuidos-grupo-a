@@ -121,7 +121,7 @@ class RentalGrpcIntegrationTest {
         Reservation r = crear(CLIENTE, 920001L, 40, 43);
 
         assertTrue(r.getId() > 0);
-        assertEquals(ReservationStatus.CONFIRMADA, r.getEstado());
+        assertEquals(ReservationStatus.RESERVATION_STATUS_CONFIRMADA, r.getEstado());
         assertEquals(3, r.getCantidadDias());
         assertEquals(100.5, r.getPrecioDiario());
         assertEquals(301.5, r.getImporteTotal());
@@ -186,13 +186,13 @@ class RentalGrpcIntegrationTest {
         Reservation cancelada = cliente.cancelReservation(
                 CancelReservationRequest.newBuilder().setId(r.getId()).build());
 
-        assertEquals(ReservationStatus.CANCELADA, cancelada.getEstado());
+        assertEquals(ReservationStatus.RESERVATION_STATUS_CANCELADA, cancelada.getEstado());
         assertFalse(cancelada.getFechaCancelacion().isEmpty());
 
         // La reserva sigue existiendo, solo cambio de estado
         Reservation consultada = cliente.getReservation(
                 GetReservationRequest.newBuilder().setId(r.getId()).build());
-        assertEquals(ReservationStatus.CANCELADA, consultada.getEstado());
+        assertEquals(ReservationStatus.RESERVATION_STATUS_CANCELADA, consultada.getEstado());
 
         // El periodo quedo libre para otra reserva
         crear(OTRO_CLIENTE, 920006L, 40, 42);
@@ -275,7 +275,8 @@ class RentalGrpcIntegrationTest {
 
         // Estado: ninguna esta cancelada
         assertEquals(0, cliente.listReservations(ListReservationsRequest.newBuilder()
-                .setClienteId(CLIENTE).setEstado(ReservationStatus.CANCELADA).build())
+                .setClienteId(CLIENTE)
+                .setEstado(ReservationStatus.RESERVATION_STATUS_CANCELADA).build())
                 .getReservasCount());
 
         // Estado sin especificar no filtra
@@ -323,6 +324,6 @@ class RentalGrpcIntegrationTest {
 
         Reservation finalizada = historial.getReservasList().stream()
                 .filter(x -> x.getId() == vencida.getId()).findFirst().orElseThrow();
-        assertEquals(ReservationStatus.FINALIZADA, finalizada.getEstado());
+        assertEquals(ReservationStatus.RESERVATION_STATUS_FINALIZADA, finalizada.getEstado());
     }
 }

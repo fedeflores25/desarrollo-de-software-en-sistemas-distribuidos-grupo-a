@@ -1,16 +1,16 @@
-// Contrato del Vehicle Service (Hito 2 y Hito 3).
-//
-// Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
-// consulta de disponibilidad y actualizacion de estado.
-//
-// Hito 3: incorpora la solicitud de vehiculos externos y la consulta de
-// su estado. Las validaciones se realizan de manera asincronica por RabbitMQ.
-//
-// Errores (codigos gRPC):
-//   NOT_FOUND            el vehiculo o solicitud no existe
-//   ALREADY_EXISTS       la patente ya esta registrada
-//   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
-//   FAILED_PRECONDITION  operacion no permitida por el estado
+ // Contrato del Vehicle Service (Hito 2 y Hito 3).
+ //
+ // Responsabilidades: alta, modificacion, baja logica y consulta de vehiculos,
+ // consulta de disponibilidad y actualizacion de estado.
+ //
+ // Hito 3: incorpora la solicitud de vehiculos externos y la consulta de
+ // su estado. Las validaciones se realizan de manera asincronica por RabbitMQ.
+ //
+ // Errores (codigos gRPC):
+ //   NOT_FOUND            el vehiculo o solicitud no existe
+ //   ALREADY_EXISTS       la patente ya esta registrada
+ //   INVALID_ARGUMENT     datos obligatorios faltantes o invalidos
+ //   FAILED_PRECONDITION  operacion no permitida por el estado
 
 syntax = "proto3";
 
@@ -21,18 +21,18 @@ option java_package = "com.rentar.vehicle.grpc";
 
 enum VehicleType {
   VEHICLE_TYPE_UNSPECIFIED = 0;
-  SEDAN = 1;
-  SUV = 2;
-  PICKUP = 3;
-  COUPE = 4;
-  HATCHBACK = 5;
+  VEHICLE_TYPE_SEDAN = 1;
+  VEHICLE_TYPE_SUV = 2;
+  VEHICLE_TYPE_PICKUP = 3;
+  VEHICLE_TYPE_COUPE = 4;
+  VEHICLE_TYPE_HATCHBACK = 5;
 }
 
 enum VehicleStatus {
   VEHICLE_STATUS_UNSPECIFIED = 0;
-  DISPONIBLE = 1;
-  RESERVADO = 2;
-  EN_ALQUILER = 3;
+  VEHICLE_STATUS_DISPONIBLE = 1;
+  VEHICLE_STATUS_RESERVADO = 2;
+  VEHICLE_STATUS_EN_ALQUILER = 3;
 }
 
 message Vehicle {

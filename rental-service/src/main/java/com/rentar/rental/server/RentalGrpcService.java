@@ -239,9 +239,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
     // Sin estado informado (UNSPECIFIED) no se filtra por estado.
     private EstadoReserva aEstado(ReservationStatus estado) {
         return switch (estado) {
-            case CONFIRMADA -> EstadoReserva.CONFIRMADA;
-            case CANCELADA -> EstadoReserva.CANCELADA;
-            case FINALIZADA -> EstadoReserva.FINALIZADA;
+            case RESERVATION_STATUS_CONFIRMADA -> EstadoReserva.CONFIRMADA;
+            case RESERVATION_STATUS_CANCELADA -> EstadoReserva.CANCELADA;
+            case RESERVATION_STATUS_FINALIZADA -> EstadoReserva.FINALIZADA;
             case RESERVATION_STATUS_UNSPECIFIED -> null;
             case UNRECOGNIZED -> throw new ReservaInvalidaException("El estado indicado no es valido");
         };
@@ -249,9 +249,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
 
     private ReservationStatus aProto(EstadoReserva estado) {
         return switch (estado) {
-            case CONFIRMADA -> ReservationStatus.CONFIRMADA;
-            case CANCELADA -> ReservationStatus.CANCELADA;
-            case FINALIZADA -> ReservationStatus.FINALIZADA;
+            case CONFIRMADA -> ReservationStatus.RESERVATION_STATUS_CONFIRMADA;
+            case CANCELADA -> ReservationStatus.RESERVATION_STATUS_CANCELADA;
+            case FINALIZADA -> ReservationStatus.RESERVATION_STATUS_FINALIZADA;
         };
     }
 
@@ -266,9 +266,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         }
 
         return switch (estado) {
-            case PENDIENTE -> MaintenanceStatus.PENDIENTE;
-            case REALIZADO -> MaintenanceStatus.REALIZADO;
-            case NO_REALIZADO -> MaintenanceStatus.NO_REALIZADO;
+            case PENDIENTE -> MaintenanceStatus.MAINTENANCE_STATUS_PENDIENTE;
+            case REALIZADO -> MaintenanceStatus.MAINTENANCE_STATUS_REALIZADO;
+            case NO_REALIZADO -> MaintenanceStatus.MAINTENANCE_STATUS_NO_REALIZADO;
         };
     }
 

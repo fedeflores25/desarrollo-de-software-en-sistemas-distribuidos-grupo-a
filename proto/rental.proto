@@ -1,3 +1,5 @@
+syntax = "proto3";
+
 // Contrato del Rental Service (Hito 2 - RPC).
 //
 // Responsabilidades: crear y cancelar reservas, consultarlas, historial de
@@ -12,7 +14,6 @@
 //   INVALID_ARGUMENT     fechas invalidas (fin no posterior a inicio, inicio no futuro)
 //   FAILED_PRECONDITION  el vehiculo esta ocupado en ese periodo, o la reserva no se
 //                        puede cancelar (no esta CONFIRMADA o su periodo ya comenzo)
-syntax = "proto3";
 
 package rentar.rental.v1;
 
@@ -21,9 +22,9 @@ option java_package = "com.rentar.rental.grpc";
 
 enum ReservationStatus {
   RESERVATION_STATUS_UNSPECIFIED = 0;
-  CONFIRMADA = 1;
-  CANCELADA = 2;
-  FINALIZADA = 3;
+  RESERVATION_STATUS_CONFIRMADA = 1;
+  RESERVATION_STATUS_CANCELADA = 2;
+  RESERVATION_STATUS_FINALIZADA = 3;
 }
 
 // Resultado del mantenimiento preventivo asociado a la reserva (Hito 3).
@@ -31,9 +32,9 @@ enum ReservationStatus {
 // Service lo guarda. Mientras no llega el resultado la reserva figura como PENDIENTE.
 enum MaintenanceStatus {
   MAINTENANCE_STATUS_UNSPECIFIED = 0;
-  PENDIENTE = 1;
-  REALIZADO = 2;
-  NO_REALIZADO = 3;
+  MAINTENANCE_STATUS_PENDIENTE = 1;
+  MAINTENANCE_STATUS_REALIZADO = 2;
+  MAINTENANCE_STATUS_NO_REALIZADO = 3;
 }
 
 message Reservation {

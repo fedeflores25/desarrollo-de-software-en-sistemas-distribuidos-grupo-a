@@ -68,7 +68,8 @@ public final class VehicleGrpcClient {
                     default -> System.out.println("Opcion no valida.");
                 }
             } catch (StatusRuntimeException exception) {
-                System.out.printf("Error gRPC: %s - %s%n", exception.getStatus().getCode(),
+                System.out.printf("Error gRPC: %s - %s%n",
+                        exception.getStatus().getCode(),
                         exception.getStatus().getDescription());
             } catch (IllegalArgumentException exception) {
                 System.out.println("Dato invalido: " + exception.getMessage());
@@ -93,7 +94,9 @@ public final class VehicleGrpcClient {
 
     private void listVehicles() {
         List<Vehicle> vehicles = stub.listVehicles(
-                com.rentar.vehicle.grpc.ListVehiclesRequest.getDefaultInstance()).getVehiculosList();
+                com.rentar.vehicle.grpc.ListVehiclesRequest.getDefaultInstance())
+                .getVehiculosList();
+
         System.out.println("Vehiculos encontrados: " + vehicles.size());
         vehicles.forEach(this::printVehicle);
     }
@@ -102,13 +105,16 @@ public final class VehicleGrpcClient {
         Vehicle vehicle = stub.getVehicle(GetVehicleRequest.newBuilder()
                 .setId(readLong("ID: "))
                 .build());
+
         printVehicle(vehicle);
     }
 
     private void getVehicleByPatente() {
-        Vehicle vehicle = stub.getVehicleByPatente(GetVehicleByPatenteRequest.newBuilder()
-                .setPatente(readRequired("Patente: "))
-                .build());
+        Vehicle vehicle = stub.getVehicleByPatente(
+                GetVehicleByPatenteRequest.newBuilder()
+                        .setPatente(readRequired("Patente: "))
+                        .build());
+
         printVehicle(vehicle);
     }
 
@@ -122,6 +128,7 @@ public final class VehicleGrpcClient {
                 .setTipo(readVehicleType())
                 .setPrecioDiario(readDouble("Precio diario: "))
                 .build();
+
         System.out.println("Vehiculo creado:");
         printVehicle(stub.createVehicle(request));
     }
@@ -136,30 +143,39 @@ public final class VehicleGrpcClient {
                 .setTipo(readVehicleType())
                 .setPrecioDiario(readDouble("Precio diario: "))
                 .build();
+
         System.out.println("Vehiculo actualizado:");
         printVehicle(stub.updateVehicle(request));
     }
 
     private void deactivateVehicle() {
-        Vehicle vehicle = stub.deactivateVehicle(DeactivateVehicleRequest.newBuilder()
-                .setId(readLong("ID: "))
-                .build());
+        Vehicle vehicle = stub.deactivateVehicle(
+                DeactivateVehicleRequest.newBuilder()
+                        .setId(readLong("ID: "))
+                        .build());
+
         System.out.println("Vehiculo dado de baja:");
         printVehicle(vehicle);
     }
 
     private void updateVehicleStatus() {
-        Vehicle vehicle = stub.updateVehicleStatus(UpdateVehicleStatusRequest.newBuilder()
-                .setId(readLong("ID: "))
-                .setEstado(readVehicleStatus())
-                .build());
+        Vehicle vehicle = stub.updateVehicleStatus(
+                UpdateVehicleStatusRequest.newBuilder()
+                        .setId(readLong("ID: "))
+                        .setEstado(readVehicleStatus())
+                        .build());
+
         System.out.println("Estado actualizado:");
         printVehicle(vehicle);
     }
 
     private void listAvailableVehicles() {
-        String occupiedIds = read("IDs ocupados separados por coma (vacio si no hay): ");
-        ListAvailableVehiclesRequest.Builder request = ListAvailableVehiclesRequest.newBuilder();
+        String occupiedIds = read(
+                "IDs ocupados separados por coma (vacio si no hay): ");
+
+        ListAvailableVehiclesRequest.Builder request =
+                ListAvailableVehiclesRequest.newBuilder();
+
         if (!occupiedIds.isBlank()) {
             request.addAllExcluirIds(Arrays.stream(occupiedIds.split(","))
                     .map(String::trim)
@@ -168,7 +184,9 @@ public final class VehicleGrpcClient {
                     .collect(Collectors.toList()));
         }
 
-        List<Vehicle> vehicles = stub.listAvailableVehicles(request.build()).getVehiculosList();
+        List<Vehicle> vehicles = stub.listAvailableVehicles(
+                request.build()).getVehiculosList();
+
         System.out.println("Vehiculos disponibles: " + vehicles.size());
         vehicles.forEach(this::printVehicle);
     }
@@ -180,20 +198,29 @@ public final class VehicleGrpcClient {
                 .setModelo("Duplicado")
                 .setAnio(2026)
                 .setColor("Gris")
-                .setTipo(VehicleType.SEDAN)
+                .setTipo(VehicleType.VEHICLE_TYPE_SEDAN)
                 .setPrecioDiario(1.0)
                 .build();
+
         stub.createVehicle(request);
     }
 
+    // Se convierte el tipo ingresado al enumerado gRPC.
     private VehicleType readVehicleType() {
-        return VehicleType.valueOf(readRequired("Tipo (SEDAN, SUV, PICKUP, COUPE, HATCHBACK): ")
-                .toUpperCase(Locale.ROOT));
+        String tipo = readRequired(
+                "Tipo (SEDAN, SUV, PICKUP, COUPE, HATCHBACK): ")
+                .toUpperCase(Locale.ROOT);
+
+        return VehicleType.valueOf("VEHICLE_TYPE_" + tipo);
     }
 
+    // Se convierte el estado ingresado al enumerado gRPC.
     private VehicleStatus readVehicleStatus() {
-        return VehicleStatus.valueOf(readRequired("Estado (DISPONIBLE, RESERVADO, EN_ALQUILER): ")
-                .toUpperCase(Locale.ROOT));
+        String estado = readRequired(
+                "Estado (DISPONIBLE, RESERVADO, EN_ALQUILER): ")
+                .toUpperCase(Locale.ROOT);
+
+        return VehicleStatus.valueOf("VEHICLE_STATUS_" + estado);
     }
 
     private int readInt(String label) {
@@ -205,14 +232,17 @@ public final class VehicleGrpcClient {
     }
 
     private double readDouble(String label) {
-        return Double.parseDouble(readRequired(label).replace(',', '.'));
+        return Double.parseDouble(
+                readRequired(label).replace(',', '.'));
     }
 
     private String readRequired(String label) {
         String value = read(label);
+
         if (value.isBlank()) {
             throw new IllegalArgumentException("el valor es obligatorio");
         }
+
         return value;
     }
 
@@ -222,9 +252,23 @@ public final class VehicleGrpcClient {
     }
 
     private void printVehicle(Vehicle vehicle) {
-        System.out.printf("ID: %d | Patente: %s | %s %s | %d | %s | %s | $ %.2f | %s | activo=%s%n",
-                vehicle.getId(), vehicle.getPatente(), vehicle.getMarca(), vehicle.getModelo(),
-                vehicle.getAnio(), vehicle.getColor(), vehicle.getTipo(), vehicle.getPrecioDiario(),
-                vehicle.getEstado(), vehicle.getActivo());
+        String tipo = vehicle.getTipo().name()
+                .replaceFirst("^VEHICLE_TYPE_", "");
+
+        String estado = vehicle.getEstado().name()
+                .replaceFirst("^VEHICLE_STATUS_", "");
+
+        System.out.printf(
+                "ID: %d | Patente: %s | %s %s | %d | %s | %s | $ %.2f | %s | activo=%s%n",
+                vehicle.getId(),
+                vehicle.getPatente(),
+                vehicle.getMarca(),
+                vehicle.getModelo(),
+                vehicle.getAnio(),
+                vehicle.getColor(),
+                tipo,
+                vehicle.getPrecioDiario(),
+                estado,
+                vehicle.getActivo());
     }
 }

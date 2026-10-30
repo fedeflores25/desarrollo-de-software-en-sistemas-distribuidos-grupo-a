@@ -373,8 +373,7 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
 
         return vehicles.stream()
                 .filter(vehicle -> !filter.hasTipo()
-                        || vehicle.getTipo().name()
-                                .equals(filter.getTipo().name()))
+                        || toGrpcType(vehicle.getTipo()) == filter.getTipo())
                 .filter(vehicle -> !filter.hasMarca()
                         || vehicle.getMarca().equalsIgnoreCase(
                                 filter.getMarca()))
@@ -404,12 +403,10 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
                         vehicle.getColor() == null
                                 ? ""
                                 : vehicle.getColor())
-                .setTipo(
-                        VehicleType.valueOf(vehicle.getTipo().name()))
+                .setTipo(toGrpcType(vehicle.getTipo()))
                 .setPrecioDiario(
                         vehicle.getPrecioDiario().doubleValue())
-                .setEstado(
-                        VehicleStatus.valueOf(vehicle.getEstado().name()))
+                .setEstado(toGrpcStatus(vehicle.getEstado()))
                 .setActivo(vehicle.isActivo())
                 .build();
     }
@@ -424,28 +421,46 @@ public class VehicleGrpcService extends VehicleServiceGrpc.VehicleServiceImplBas
                 .build();
     }
 
+    private VehicleType toGrpcType(TipoVehiculo type) {
+        return switch (type) {
+            case SEDAN -> VehicleType.VEHICLE_TYPE_SEDAN;
+            case SUV -> VehicleType.VEHICLE_TYPE_SUV;
+            case PICKUP -> VehicleType.VEHICLE_TYPE_PICKUP;
+            case COUPE -> VehicleType.VEHICLE_TYPE_COUPE;
+            case HATCHBACK -> VehicleType.VEHICLE_TYPE_HATCHBACK;
+        };
+    }
+
+    private VehicleStatus toGrpcStatus(EstadoVehiculo status) {
+        return switch (status) {
+            case DISPONIBLE -> VehicleStatus.VEHICLE_STATUS_DISPONIBLE;
+            case RESERVADO -> VehicleStatus.VEHICLE_STATUS_RESERVADO;
+            case EN_ALQUILER -> VehicleStatus.VEHICLE_STATUS_EN_ALQUILER;
+        };
+    }
+
     private TipoVehiculo toDomainType(VehicleType type) {
-
-        if (type == VehicleType.VEHICLE_TYPE_UNSPECIFIED
-                || type == VehicleType.UNRECOGNIZED) {
-
-            throw new IllegalArgumentException(
-                    "El tipo de vehiculo es obligatorio");
-        }
-
-        return TipoVehiculo.valueOf(type.name());
+        return switch (type) {
+            case VEHICLE_TYPE_SEDAN -> TipoVehiculo.SEDAN;
+            case VEHICLE_TYPE_SUV -> TipoVehiculo.SUV;
+            case VEHICLE_TYPE_PICKUP -> TipoVehiculo.PICKUP;
+            case VEHICLE_TYPE_COUPE -> TipoVehiculo.COUPE;
+            case VEHICLE_TYPE_HATCHBACK -> TipoVehiculo.HATCHBACK;
+            case VEHICLE_TYPE_UNSPECIFIED, UNRECOGNIZED ->
+                    throw new IllegalArgumentException(
+                            "El tipo de vehiculo es obligatorio");
+        };
     }
 
     private EstadoVehiculo toDomainStatus(VehicleStatus status) {
-
-        if (status == VehicleStatus.VEHICLE_STATUS_UNSPECIFIED
-                || status == VehicleStatus.UNRECOGNIZED) {
-
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio");
-        }
-
-        return EstadoVehiculo.valueOf(status.name());
+        return switch (status) {
+            case VEHICLE_STATUS_DISPONIBLE -> EstadoVehiculo.DISPONIBLE;
+            case VEHICLE_STATUS_RESERVADO -> EstadoVehiculo.RESERVADO;
+            case VEHICLE_STATUS_EN_ALQUILER -> EstadoVehiculo.EN_ALQUILER;
+            case VEHICLE_STATUS_UNSPECIFIED, UNRECOGNIZED ->
+                    throw new IllegalArgumentException(
+                            "El estado es obligatorio");
+        };
     }
 
     private <T> void respond(

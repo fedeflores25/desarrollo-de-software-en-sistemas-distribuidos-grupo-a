@@ -35,6 +35,7 @@ import com.rentar.vehicle.grpc.GetVehicleRequest;
 import com.rentar.vehicle.grpc.ListAvailableVehiclesRequest;
 import com.rentar.vehicle.grpc.ListVehiclesResponse;
 import com.rentar.vehicle.grpc.Vehicle;
+import com.rentar.vehicle.grpc.VehicleStatus;
 import com.rentar.vehicle.grpc.VehicleType;
 import com.rentar.vehicle.service.SolicitudVehiculoExternoService;
 import com.rentar.vehicle.service.VehicleService;
@@ -52,7 +53,7 @@ class VehicleGrpcServiceTest {
     @Mock
     private SolicitudVehiculoExternoService solicitudService;
 
-    // Pruebas originales del Hito 2
+    // Pruebas originales del Hito 2.
 
     @Test
     void getVehicleMapsTheDomainVehicleToTheGrpcResponse() {
@@ -73,9 +74,9 @@ class VehicleGrpcServiceTest {
 
         assertEquals(1L, response.getId());
         assertEquals("ABC123", response.getPatente());
-        assertEquals(VehicleType.SEDAN, response.getTipo());
-        assertEquals(EstadoVehiculo.DISPONIBLE.name(),
-                response.getEstado().name());
+        assertEquals(VehicleType.VEHICLE_TYPE_SEDAN, response.getTipo());
+        assertEquals(VehicleStatus.VEHICLE_STATUS_DISPONIBLE,
+                response.getEstado());
         assertNotNull(observer.completed);
     }
 
@@ -120,7 +121,7 @@ class VehicleGrpcServiceTest {
                         .setMarca("Toyota")
                         .setModelo("Corolla")
                         .setAnio(2021)
-                        .setTipo(VehicleType.SEDAN)
+                        .setTipo(VehicleType.VEHICLE_TYPE_SEDAN)
                         .setPrecioDiario(45000)
                         .build();
 
@@ -163,7 +164,7 @@ class VehicleGrpcServiceTest {
                         .getVehiculos(0).getId());
     }
 
-    // Pruebas nuevas del Hito 3
+    // Pruebas nuevas del Hito 3.
 
     @Test
     void createExternalVehicleApplicationReturnsPendingApplication() {
@@ -189,7 +190,7 @@ class VehicleGrpcServiceTest {
                         .setModelo("Corolla")
                         .setAnio(2022)
                         .setColor("Blanco")
-                        .setTipo(VehicleType.SEDAN)
+                        .setTipo(VehicleType.VEHICLE_TYPE_SEDAN)
                         .setPrecioDiario(45000)
                         .build();
 
@@ -259,7 +260,7 @@ class VehicleGrpcServiceTest {
         verify(solicitudService).getById(4L);
     }
 
-    // Datos de prueba
+    // Datos de prueba.
 
     private SolicitudVehiculoExterno solicitudExterna() {
         SolicitudVehiculoExterno solicitud =
