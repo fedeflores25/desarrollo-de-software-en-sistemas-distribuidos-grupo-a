@@ -75,6 +75,9 @@ const schemaString = `
 
     """Patente del vehículo asociado a la reserva."""
     patente: String
+    
+    """Resultado del mantenimiento del vehículo."""
+    mantenimiento_resultado: String # Puede ser "REALIZADO" o "NO_REALIZADO"
   }
 
   """

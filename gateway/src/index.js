@@ -150,15 +150,26 @@ app.use(
   swaggerUi.setup(openapi)
 );
 
+
 // Registro de rutas REST.
 app.use('/api/clientes', customerRouter);
 app.use('/api/vehiculos', vehicleRouter);
 app.use('/api/reservas', rentalRouter);
 
+const { connectRabbitMQ } = require('./config/rabbitmq'); // <--  Importar la conexión
+const { iniciarRegistroPolicial } = require('./events/verificacionPolicial'); // <-- Importar la función para iniciar el registro policial
+
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  console.log(`API Gateway orquestando en el puerto ${PORT}`);
-  console.log(`Swagger disponible en http://localhost:${PORT}/api-docs`);
-  console.log(`GraphQL disponible en http://localhost:${PORT}/graphql`);
+// conectar a RabbitMQ y  levantar el servidor web 
+connectRabbitMQ().then(() => {
+    iniciarRegistroPolicial(); // <-- Llamar a la función para iniciar el registro policial (consumidor)
+    app.listen(PORT, () => {
+        console.log(`API Gateway orquestando en el puerto ${PORT}`);
+        console.log(`Swagger disponible en http://localhost:${PORT}/api-docs`);
+        console.log(`GraphQL disponible en http://localhost:${PORT}/graphql`);
+    });
+}).catch(error => {
+    console.error('Error crítico al iniciar RabbitMQ:', error);
 });
+
