@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -44,9 +45,10 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
 
     private static final Logger log = LoggerFactory.getLogger(RentalGrpcService.class);
 
-    // Fechas ISO-8601 sin zona horaria, siempre con segundos (ej: 2026-10-05T10:00:00).
+    // Formato ISO-8601 local con segundos y validacion estricta.
     private static final DateTimeFormatter FORMATO_FECHA =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss")
+                    .withResolverStyle(ResolverStyle.STRICT);
 
     private final IReservaService reservaService;
     private final IMantenimientoService mantenimientoService;
@@ -56,7 +58,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         this.mantenimientoService = mantenimientoService;
     }
 
+    // ==========================================
     // CREAR RESERVA
+    // ==========================================
 
     @Override
     public void createReservation(
@@ -79,7 +83,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
+    // ==========================================
     // CANCELAR RESERVA
+    // ==========================================
 
     @Override
     public void cancelReservation(
@@ -94,7 +100,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
+    // ==========================================
     // CONSULTAR UNA RESERVA POR ID
+    // ==========================================
 
     @Override
     public void getReservation(
@@ -109,7 +117,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
+    // ==========================================
     // LISTAR RESERVAS CON FILTROS
+    // ==========================================
 
     @Override
     public void listReservations(
@@ -129,7 +139,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
+    // ==========================================
     // HISTORIAL DE UN CLIENTE
+    // ==========================================
 
     @Override
     public void getRentalHistory(
@@ -140,16 +152,15 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
 
             validarId(request.getClienteId(), "cliente_id");
 
-            ListReservationsResponse reservas =
-                    aRespuesta(reservaService.historial(request.getClienteId()));
-
             return GetRentalHistoryResponse.newBuilder()
-                    .addAllReservas(reservas.getReservasList())
+                    .addAllReservas(aRespuesta(reservaService.historial(request.getClienteId())).getReservasList())
                     .build();
         });
     }
 
+    // ==========================================
     // VEHICULOS OCUPADOS EN UN PERIODO
+    // ==========================================
 
     @Override
     public void getBusyVehicleIds(
@@ -168,7 +179,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         });
     }
 
+    // ==========================================
     // RESPUESTA Y MAPEO DE ERRORES A STATUS GRPC
+    // ==========================================
 
     private <T> void responder(StreamObserver<T> observer, Supplier<T> accion) {
 
@@ -204,7 +217,9 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
         observer.onCompleted();
     }
 
+    // ==========================================
     // VALIDACION Y CONVERSIONES
+    // ==========================================
 
     private void validarId(long id, String campo) {
         if (id <= 0) {
@@ -215,14 +230,17 @@ public class RentalGrpcService extends RentalServiceGrpc.RentalServiceImplBase {
     private LocalDateTime parsearFecha(String valor, String campo) {
 
         if (valor == null || valor.isBlank()) {
-            throw new ReservaInvalidaException("El campo " + campo + " es obligatorio");
+            throw new ReservaInvalidaException(
+                    "El campo " + campo + " es obligatorio");
         }
 
         try {
-            return LocalDateTime.parse(valor.trim());
+            return LocalDateTime.parse(valor, FORMATO_FECHA);
         } catch (DateTimeParseException e) {
             throw new ReservaInvalidaException(
-                    "El campo " + campo + " no tiene formato ISO-8601 (ej: 2026-10-05T10:00:00)");
+                    "El campo " + campo
+                            + " debe tener formato YYYY-MM-DDTHH:mm:ss "
+                            + "(ej: 2026-10-05T10:00:00)");
         }
     }
 

@@ -73,19 +73,20 @@ const schemaString = `
   """
   Período obligatorio y filtros opcionales para
   consultar la disponibilidad de vehículos.
+  Las fechas deben incluir segundos y no admiten zona horaria.
   """
   input DisponibilidadFiltroInput {
     """
     Fecha y hora de inicio del período.
-    Formato ISO-8601 sin zona horaria:
-    YYYY-MM-DDTHH:mm:ss.
+    Formato obligatorio YYYY-MM-DDTHH:mm:ss, sin zona horaria.
+    No se admite el sufijo Z.
     """
     fecha_inicio: String!
 
     """
-    Fecha y hora de fin del período.
-    Formato ISO-8601 sin zona horaria:
-    YYYY-MM-DDTHH:mm:ss.
+    Fecha y hora de fin del período, posterior al inicio.
+    Formato obligatorio YYYY-MM-DDTHH:mm:ss, sin zona horaria.
+    No se admite el sufijo Z.
     """
     fecha_fin: String!
 

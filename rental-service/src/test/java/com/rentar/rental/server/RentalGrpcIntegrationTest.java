@@ -134,11 +134,11 @@ class RentalGrpcIntegrationTest {
 
         crear(CLIENTE, 920002L, 40, 45);
 
-        // Se solapa con el tramo final de la reserva anterior
+        // Se solapa con el tramo final de la reserva anterior.
         assertEquals(Status.Code.FAILED_PRECONDITION,
                 codigoDe(() -> crear(OTRO_CLIENTE, 920002L, 44, 48)));
 
-        // Otro vehiculo en el mismo periodo no tiene problema
+        // Otro vehiculo en el mismo periodo no tiene problema.
         crear(OTRO_CLIENTE, 920003L, 44, 48);
     }
 
@@ -146,32 +146,92 @@ class RentalGrpcIntegrationTest {
     void reservasContiguasNoSeSolapan() {
 
         crear(CLIENTE, 920004L, 40, 42);
-        // Empieza justo cuando termina la anterior
+
+        // Empieza justo cuando termina la anterior.
         crear(OTRO_CLIENTE, 920004L, 42, 44);
     }
 
     @Test
     void crearConDatosInvalidosDevuelveInvalidArgument() {
 
-        // fin anterior al inicio
+        // Fin anterior al inicio.
         assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> crear(CLIENTE, 920005L, 10, 8)));
 
-        // inicio en el pasado
+        // Inicio en el pasado.
         assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> crear(CLIENTE, 920005L, -2, 3)));
 
-        // formato de fecha incorrecto
+        // Formato de fecha incorrecto.
         assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.createReservation(
                 CreateReservationRequest.newBuilder()
                         .setClienteId(CLIENTE).setVehiculoId(920005L)
                         .setFechaInicio("10/11/2026").setFechaFin(fecha(12))
                         .setPrecioDiario(100.5).build())));
 
-        // cliente sin informar
+        // Cliente sin informar.
         assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.createReservation(
                 CreateReservationRequest.newBuilder()
                         .setVehiculoId(920005L)
                         .setFechaInicio(fecha(10)).setFechaFin(fecha(12))
                         .setPrecioDiario(100.5).build())));
+    }
+
+    // ==========================================
+    // VALIDACION ESTRICTA DE FECHAS
+    // ==========================================
+
+    @Test
+    void fechasSinSegundosDevuelvenInvalidArgument() {
+
+        // Se omiten los segundos de una fecha futura valida.
+        String sinSegundos = fecha(20).substring(0, 16);
+
+        // La creacion de una reserva debe rechazar la fecha incompleta.
+        assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.createReservation(
+                CreateReservationRequest.newBuilder()
+                        .setClienteId(CLIENTE)
+                        .setVehiculoId(920015L)
+                        .setFechaInicio(sinSegundos)
+                        .setFechaFin(fecha(22))
+                        .setPrecioDiario(100.5)
+                        .build())));
+
+        // La consulta de disponibilidad debe aplicar el mismo formato.
+        assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.getBusyVehicleIds(
+                GetBusyVehicleIdsRequest.newBuilder()
+                        .setFechaInicio(sinSegundos)
+                        .setFechaFin(fecha(22))
+                        .build())));
+
+        // Los filtros de listado tambien deben rechazar fechas sin segundos.
+        assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.listReservations(
+                ListReservationsRequest.newBuilder()
+                        .setClienteId(CLIENTE)
+                        .setDesde(sinSegundos)
+                        .build())));
+    }
+
+    @Test
+    void fechasInexistentesOConZonaUtcDevuelvenInvalidArgument() {
+
+        // La validacion estricta rechaza dias inexistentes.
+        assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.createReservation(
+                CreateReservationRequest.newBuilder()
+                        .setClienteId(CLIENTE)
+                        .setVehiculoId(920016L)
+                        .setFechaInicio("2026-02-30T10:00:00")
+                        .setFechaFin(fecha(22))
+                        .setPrecioDiario(100.5)
+                        .build())));
+
+        // El contrato usa fecha y hora local, sin sufijo UTC.
+        assertEquals(Status.Code.INVALID_ARGUMENT, codigoDe(() -> cliente.createReservation(
+                CreateReservationRequest.newBuilder()
+                        .setClienteId(CLIENTE)
+                        .setVehiculoId(920016L)
+                        .setFechaInicio(fecha(20) + "Z")
+                        .setFechaFin(fecha(22))
+                        .setPrecioDiario(100.5)
+                        .build())));
     }
 
     // ==========================================
@@ -189,12 +249,12 @@ class RentalGrpcIntegrationTest {
         assertEquals(ReservationStatus.RESERVATION_STATUS_CANCELADA, cancelada.getEstado());
         assertFalse(cancelada.getFechaCancelacion().isEmpty());
 
-        // La reserva sigue existiendo, solo cambio de estado
+        // La reserva sigue existiendo, solo cambio de estado.
         Reservation consultada = cliente.getReservation(
                 GetReservationRequest.newBuilder().setId(r.getId()).build());
         assertEquals(ReservationStatus.RESERVATION_STATUS_CANCELADA, consultada.getEstado());
 
-        // El periodo quedo libre para otra reserva
+        // El periodo quedo libre para otra reserva.
         crear(OTRO_CLIENTE, 920006L, 40, 42);
 
         assertEquals(Status.Code.FAILED_PRECONDITION, codigoDe(() -> cliente.cancelReservation(
@@ -257,29 +317,28 @@ class RentalGrpcIntegrationTest {
         Reservation b = crear(CLIENTE, 920010L, 70, 72);
         crear(OTRO_CLIENTE, 920011L, 60, 62);
 
-        // Solo por cliente
+        // Solo por cliente.
         assertEquals(2, cliente.listReservations(ListReservationsRequest.newBuilder()
                 .setClienteId(CLIENTE).build()).getReservasCount());
 
-        // Cliente y vehiculo
+        // Cliente y vehiculo.
         var porVehiculo = cliente.listReservations(ListReservationsRequest.newBuilder()
                 .setClienteId(CLIENTE).addVehiculoIds(920010L).build());
         assertEquals(1, porVehiculo.getReservasCount());
         assertEquals(b.getId(), porVehiculo.getReservas(0).getId());
 
-        // Cliente y rango de fechas sobre la fecha de inicio
+        // Cliente y rango de fechas sobre la fecha de inicio.
         var porFechas = cliente.listReservations(ListReservationsRequest.newBuilder()
                 .setClienteId(CLIENTE).setDesde(fecha(59)).setHasta(fecha(65)).build());
         assertEquals(1, porFechas.getReservasCount());
         assertEquals(a.getId(), porFechas.getReservas(0).getId());
 
-        // Estado: ninguna esta cancelada
+        // Estado: ninguna esta cancelada.
         assertEquals(0, cliente.listReservations(ListReservationsRequest.newBuilder()
-                .setClienteId(CLIENTE)
-                .setEstado(ReservationStatus.RESERVATION_STATUS_CANCELADA).build())
+                .setClienteId(CLIENTE).setEstado(ReservationStatus.RESERVATION_STATUS_CANCELADA).build())
                 .getReservasCount());
 
-        // Estado sin especificar no filtra
+        // Estado sin especificar no filtra.
         assertEquals(2, cliente.listReservations(ListReservationsRequest.newBuilder()
                 .setClienteId(CLIENTE)
                 .setEstado(ReservationStatus.RESERVATION_STATUS_UNSPECIFIED).build())
@@ -299,7 +358,7 @@ class RentalGrpcIntegrationTest {
         Reservation aCancelar = crear(cliente2, 920013L, 80, 82);
         cliente.cancelReservation(CancelReservationRequest.newBuilder().setId(aCancelar.getId()).build());
 
-        // Reserva CONFIRMADA cuyo periodo ya termino: debe figurar como FINALIZADA
+        // Reserva CONFIRMADA cuyo periodo ya termino: debe figurar como FINALIZADA.
         Reserva vencida = new Reserva();
         vencida.setClienteId(cliente2);
         vencida.setVehiculoId(920014L);

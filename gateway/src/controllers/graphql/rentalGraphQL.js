@@ -57,12 +57,13 @@ const schemaString = `
     """Estado actual de la reserva."""
     estado: EstadoReserva
 
-    """Fecha y hora de registro de la reserva."""
+    """Fecha y hora de registro. Formato YYYY-MM-DDTHH:mm:ss, sin zona horaria."""
     fecha_alta: String
 
     """
     Fecha y hora de cancelación.
-    Puede estar vacía si la reserva no fue cancelada.
+    Formato YYYY-MM-DDTHH:mm:ss, sin zona horaria.
+    Cadena vacía si la reserva no fue cancelada.
     """
     fecha_cancelacion: String
 
@@ -95,13 +96,13 @@ const schemaString = `
 
     """
     Fecha inicial del rango de consulta.
-    Formato ISO-8601 sin zona horaria.
+    Formato YYYY-MM-DDTHH:mm:ss, sin zona horaria.
     """
     desde: String
 
     """
     Fecha final del rango de consulta.
-    Formato ISO-8601 sin zona horaria.
+    Formato YYYY-MM-DDTHH:mm:ss, sin zona horaria.
     """
     hasta: String
   }
