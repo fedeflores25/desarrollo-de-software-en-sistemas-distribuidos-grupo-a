@@ -98,6 +98,10 @@ module.exports = {
 
   tags: [
     {
+      name: 'Autenticacion',
+      description: 'Inicio de sesion y obtencion de token Bearer.',
+    },
+    {
       name: 'Clientes',
       description: 'Alta, consulta, modificación y baja lógica de clientes.',
     },
@@ -112,6 +116,12 @@ module.exports = {
   ],
 
   paths: {
+    '/api/auth/login': {
+      post: operation('Autenticacion', 'Iniciar sesion', 200, ref('LoginResponse'), {
+        body: 'LoginRequest',
+        errors: { 400: 'Usuario o contrasena no informados.', 401: 'Credenciales invalidas.' },
+      }),
+    },
     '/api/clientes': {
       get: operation(
         'Clientes', 'Listar clientes', 200, list('Cliente'),
@@ -300,7 +310,21 @@ module.exports = {
   },
 
   components: {
+    securitySchemes: {
+      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+    },
     schemas: {
+      LoginRequest: {
+        type: 'object', required: ['username', 'password'],
+        properties: { username: { type: 'string', example: 'cliente' }, password: { type: 'string', format: 'password', example: 'C1234!' } },
+      },
+      LoginResponse: {
+        type: 'object',
+        properties: {
+          token: { type: 'string', description: 'JWT para enviar como Bearer token.' },
+          usuario: { type: 'object', properties: { username: { type: 'string' }, rol: { type: 'string', enum: ['ADMIN', 'CLIENTE'] }, clienteId: { type: 'integer', nullable: true } } },
+        },
+      },
       Error: {
         type: 'object',
         properties: {
