@@ -2,6 +2,7 @@ package com.rentar.titularidad.event;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import org.springframework.amqp.core.Message;
@@ -20,6 +21,10 @@ public class TitularidadResultadoPublisher {
 
     private static final JsonMapper JSON =
             JsonMapper.builder().build();
+
+    // Formato ISO-8601 local sin zona horaria y con segundos.
+    private static final DateTimeFormatter FORMATO_FECHA =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     private final RabbitTemplate rabbitTemplate;
     private final boolean habilitado;
@@ -56,7 +61,7 @@ public class TitularidadResultadoPublisher {
         evento.put("correlationId", correlationId);
         evento.put(
                 "occurredAt",
-                LocalDateTime.now().toString());
+                LocalDateTime.now().format(FORMATO_FECHA));
 
         ObjectNode payload = evento.putObject("payload");
 
