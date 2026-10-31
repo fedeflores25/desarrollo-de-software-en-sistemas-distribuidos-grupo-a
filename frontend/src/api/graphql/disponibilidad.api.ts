@@ -14,6 +14,7 @@ interface DisponibilidadData {
 const DISPONIBILIDAD_QUERY = `
   query VehiculosDisponibles($filtro: DisponibilidadFiltroInput!) {
     vehiculosDisponibles(filtro: $filtro) {
+      id
       patente
       marca
       modelo

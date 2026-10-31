@@ -11,6 +11,7 @@ export interface DisponibilidadFiltro {
 }
 
 export interface VehiculoDisponible {
+  id: number;
   patente: string;
   marca: string;
   modelo: string;

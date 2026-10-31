@@ -1,16 +1,20 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { CalendarPlus, XCircle } from 'lucide-react';
 import { ApiError } from '../api/rest/http';
+import { obtenerSesion } from '../api/auth';
 import { listarClientes } from '../api/rest/clientes.api';
 import { cancelarReserva, crearReserva } from '../api/rest/reservas.api';
 import { listarVehiculos } from '../api/rest/vehiculos.api';
 import { consultarReservas } from '../api/graphql/consultas.api';
+import { buscarDisponibilidad } from '../api/graphql/disponibilidad.api';
 import type { Cliente } from '../types/cliente';
 import type { ConsultaReserva } from '../types/consultas';
 import type { Reserva } from '../types/reserva';
 import type { Vehiculo } from '../types/vehiculo';
 
 export function ReservasPage() {
+  const sesion = obtenerSesion();
+  const esCliente = sesion?.usuario.rol === 'CLIENTE';
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [clienteId, setClienteId] = useState('');
@@ -31,6 +35,11 @@ export function ReservasPage() {
     setCargando(true);
     setError('');
     try {
+      if (esCliente && sesion.usuario.clienteId) {
+        setClienteId(String(sesion.usuario.clienteId));
+        await cargarReservasConfirmadas();
+        return;
+      }
       const [clientesResult, vehiculosResult] = await Promise.all([listarClientes(), listarVehiculos()]);
       setClientes(clientesResult.filter((cliente) => cliente.activo));
       setVehiculos(vehiculosResult.filter((vehiculo) => vehiculo.activo));
@@ -39,6 +48,27 @@ export function ReservasPage() {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible cargar los datos de reserva.');
     } finally {
       setCargando(false);
+    }
+  }
+
+  async function cargarVehiculosDisponibles() {
+    if (!fechaInicio || !fechaFin) {
+      setError('Indica inicio y finalizacion antes de consultar disponibilidad.');
+      return;
+    }
+    setGuardando(true);
+    setError('');
+    try {
+      const disponibles = await buscarDisponibilidad({ fechaInicio, fechaFin });
+      setVehiculos(disponibles.map((vehiculo) => ({
+        ...vehiculo,
+        estado: 'DISPONIBLE',
+        activo: true,
+      })));
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : 'No fue posible consultar vehiculos disponibles.');
+    } finally {
+      setGuardando(false);
     }
   }
 
@@ -107,7 +137,7 @@ export function ReservasPage() {
               <h3 id="nueva-reserva-title">Nueva reserva</h3>
             </div>
             <form className="form-grid" onSubmit={(event) => void handleCrearReserva(event)}>
-              <label className="form-field">
+              {esCliente ? <p className="feedback-message">Reserva para tu cuenta.</p> : <label className="form-field">
                 <span>Cliente</span>
                 <select onChange={(event) => setClienteId(event.target.value)} required value={clienteId}>
                   <option value="">Seleccionar cliente</option>
@@ -115,7 +145,7 @@ export function ReservasPage() {
                     <option key={cliente.id} value={cliente.id}>{cliente.documento} - {cliente.nombre} {cliente.apellido}</option>
                   ))}
                 </select>
-              </label>
+              </label>}
               <label className="form-field">
                 <span>Vehiculo</span>
                 <select onChange={(event) => setVehiculoId(event.target.value)} required value={vehiculoId}>
@@ -134,6 +164,9 @@ export function ReservasPage() {
                 <input onChange={(event) => setFechaFin(event.target.value)} required type="datetime-local" value={fechaFin} />
               </label>
               <div className="form-actions">
+                {esCliente && <button className="secondary-button" disabled={guardando} onClick={() => void cargarVehiculosDisponibles()} type="button">
+                  Buscar vehiculos disponibles
+                </button>}
                 <button className="primary-button" disabled={guardando} type="submit">
                   <CalendarPlus aria-hidden="true" size={18} />
                   {guardando ? 'Procesando...' : 'Crear reserva'}

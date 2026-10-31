@@ -37,6 +37,12 @@ message Customer {
 
 service CustomerService {
 
+  // Autentica un usuario para que el Gateway pueda crear su sesion.
+  // Credenciales invalidas devuelven autenticado = false.
+  // Un usuario CLIENTE asociado a un cliente inactivo tampoco puede ingresar.
+  rpc AuthenticateUser(AuthenticateUserRequest)
+      returns (AuthenticateUserResponse);
+
   // Lista los clientes registrados.
   // Permite filtrar por identificadores y por clientes activos.
   // Sin filtros, devuelve todos los clientes.
@@ -80,6 +86,25 @@ service CustomerService {
   // INVALID_ARGUMENT si el ID es menor o igual a cero.
   rpc VerifyCustomer(VerifyCustomerRequest)
       returns (VerifyCustomerResponse);
+}
+
+// Roles disponibles para el acceso al sistema.
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_ADMIN = 1;
+  USER_ROLE_CLIENTE = 2;
+}
+
+message AuthenticateUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthenticateUserResponse {
+  bool autenticado = 1;
+  UserRole rol = 2;
+  int64 cliente_id = 3;
+  string username = 4;
 }
 
 message ListCustomersRequest {

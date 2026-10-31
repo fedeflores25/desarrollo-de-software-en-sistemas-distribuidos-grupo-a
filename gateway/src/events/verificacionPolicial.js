@@ -55,6 +55,49 @@ async function iniciarRegistroPolicial() {
             channel.ack(msg);
         }
     });
+
+    const externalQueue = 'gateway.registro_policial.externos.queue';
+    const externalRequest = 'vehiculos.externos.registrados';
+    const externalResponse = 'vehiculos.externos.validacion.patente';
+    await channel.assertQueue(externalQueue, { durable: true });
+    await channel.bindQueue(externalQueue, EXCHANGE_NAME, externalRequest);
+    console.log(`Registro Policial escuchando eventos: ${externalRequest}`);
+
+    channel.consume(externalQueue, (msg) => {
+        if (msg === null) return;
+        try {
+            const contenido = JSON.parse(msg.content.toString());
+            const payload = contenido.payload || {};
+            if (!payload.vehiculoExternoId || !payload.patente) {
+                throw new Error('Evento de vehiculo externo incompleto');
+            }
+
+            const resultado = patentesRobadas.includes(payload.patente)
+                ? 'RECHAZADO' : 'VALIDADO';
+            const respuesta = {
+                eventId: crypto.randomUUID(),
+                eventType: externalResponse,
+                correlationId: contenido.correlationId || crypto.randomUUID(),
+                occurredAt: new Date().toISOString().replace(/\.\d{3}Z$/, ''),
+                payload: {
+                    vehiculoExternoId: payload.vehiculoExternoId,
+                    patente: payload.patente,
+                    resultado,
+                },
+            };
+
+            channel.publish(
+                EXCHANGE_NAME,
+                externalResponse,
+                Buffer.from(JSON.stringify(respuesta)),
+                { persistent: true },
+            );
+            channel.ack(msg);
+        } catch (error) {
+            console.error('Evento policial externo invalido:', error.message);
+            channel.nack(msg, false, false);
+        }
+    });
 }
 
 module.exports = { iniciarRegistroPolicial };

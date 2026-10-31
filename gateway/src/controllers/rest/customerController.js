@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const customerService = require('../../services/customerService');
+const { requireRoles } = require('../../middleware/auth');
+
+router.use(requireRoles('ADMIN'));
 
 // GET /api/clientes (Lista todos o filtra por activos)
 router.get('/', async (req, res) => {

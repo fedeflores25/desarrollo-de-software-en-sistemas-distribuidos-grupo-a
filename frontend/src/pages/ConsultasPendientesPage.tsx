@@ -5,6 +5,7 @@ import {
   consultarReservas,
 } from '../api/graphql/consultas.api';
 import { ApiError } from '../api/rest/http';
+import { obtenerSesion } from '../api/auth';
 import { listarClientes } from '../api/rest/clientes.api';
 import { listarVehiculos } from '../api/rest/vehiculos.api';
 import type { Cliente } from '../types/cliente';
@@ -36,6 +37,8 @@ function formatDateTime(value: string): string {
 }
 
 export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) {
+  const sesion = obtenerSesion();
+  const esCliente = sesion?.usuario.rol === 'CLIENTE';
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [clienteId, setClienteId] = useState('');
@@ -58,6 +61,12 @@ export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) 
   async function cargarFiltros() {
     setCargando(true);
     setError('');
+
+    if (esCliente) {
+      setClienteId(String(sesion.usuario.clienteId));
+      setCargando(false);
+      return;
+    }
 
     try {
       const [clientesResult, vehiculosResult] = await Promise.all([listarClientes(), listarVehiculos()]);
@@ -128,20 +137,20 @@ export function ConsultasPendientesPage({ tipo }: ConsultasPendientesPageProps) 
       {tipo === 'reservas' && (
         <section className="form-panel" aria-label="Filtros de reservas">
           <div className="form-grid">
-            <label className="form-field">
+            {!esCliente && <label className="form-field">
               <span>Cliente</span>
               <select onChange={(event) => setClienteId(event.target.value)} value={clienteId}>
                 <option value="">Todos los clientes</option>
                 {clientes.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.nombre} {cliente.apellido}</option>)}
               </select>
-            </label>
-            <label className="form-field">
+            </label>}
+            {esCliente ? <p className="feedback-message">Se consultará tu historial personal.</p> : <label className="form-field">
               <span>Vehiculo</span>
               <select onChange={(event) => setVehiculoId(event.target.value)} value={vehiculoId}>
                 <option value="">Todos los vehiculos</option>
                 {vehiculos.map((vehiculo) => <option key={vehiculo.id} value={vehiculo.id}>{vehiculo.patente} - {vehiculo.marca} {vehiculo.modelo}</option>)}
               </select>
-            </label>
+            </label>}
             <label className="form-field">
               <span>Tipo de vehiculo</span>
               <select onChange={(event) => setTipoVehiculo(event.target.value)} value={tipoVehiculo}>

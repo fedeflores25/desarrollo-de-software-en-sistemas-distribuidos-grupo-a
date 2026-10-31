@@ -42,11 +42,14 @@ const HISTORIAL_QUERY = `
 `;
 
 async function graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  const stored = localStorage.getItem('rentar.sesion');
+  const sesion = stored ? JSON.parse(stored) as { token?: string } : null;
   const response = await fetch(API_CONFIG.graphql.endpoint, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...(sesion?.token && { Authorization: `Bearer ${sesion.token}` }),
     },
     body: JSON.stringify({ query, variables }),
   });

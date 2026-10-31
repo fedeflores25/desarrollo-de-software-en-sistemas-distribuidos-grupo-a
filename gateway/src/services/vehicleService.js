@@ -132,6 +132,18 @@ async function listAvailableVehicles(filtro = {}, excluirIds = []) {
   return (response.vehiculos || []).map(normalizarVehiculo);
 }
 
+async function createExternalVehicleApplication(data) {
+  const request = {
+    ...data,
+    tipo: TIPOS_GRPC[data.tipo] || data.tipo
+  };
+  return callGrpc('CreateExternalVehicleApplication', request);
+}
+
+async function getExternalVehicleApplication(id) {
+  return callGrpc('GetExternalVehicleApplication', { id });
+}
+
 module.exports = {
   listVehicles,
   getVehicle,
@@ -140,5 +152,7 @@ module.exports = {
   updateVehicle,
   deactivateVehicle,
   updateVehicleStatus,
-  listAvailableVehicles
+  listAvailableVehicles,
+  createExternalVehicleApplication,
+  getExternalVehicleApplication
 };

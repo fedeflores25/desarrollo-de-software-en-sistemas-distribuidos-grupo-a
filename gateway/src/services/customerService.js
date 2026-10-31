@@ -65,11 +65,22 @@ async function verifyCustomer(id) {
     });
 }
 
+// 7. Autenticar un usuario para iniciar sesion en el Gateway.
+async function authenticateUser(username, password) {
+    return new Promise((resolve, reject) => {
+        customerClient.AuthenticateUser({ username, password }, (error, response) => {
+            if (error) reject(error);
+            else resolve(response);
+        });
+    });
+}
+
 module.exports = {
     listCustomers,
     getCustomer,
     createCustomer,
     updateCustomer,
     deactivateCustomer,
-    verifyCustomer
+    verifyCustomer,
+    authenticateUser
 };

@@ -77,7 +77,7 @@ const schemaString = `
     patente: String
     
     """Resultado del mantenimiento del vehículo."""
-    mantenimiento_resultado: String # Puede ser "REALIZADO" o "NO_REALIZADO"
+    mantenimiento: String # PENDIENTE, REALIZADO o NO_REALIZADO
   }
 
   """
