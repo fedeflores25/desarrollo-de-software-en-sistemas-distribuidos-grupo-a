@@ -11,6 +11,7 @@ import { ClientesPage } from './pages/ClientesPage';
 import { ConsultasPendientesPage } from './pages/ConsultasPendientesPage';
 import { DisponibilidadPage } from './pages/DisponibilidadPage';
 import { ReservasPage } from './pages/ReservasPage';
+import { SolicitudVehiculoPage } from './pages/SolicitudVehiculoPage';
 import { VehiculosPage } from './pages/VehiculosPage';
 import { LoginPage } from './pages/LoginPage';
 
@@ -30,7 +31,12 @@ function App() {
   const [sesion, setSesion] = useState<Sesion | null>(() => obtenerSesion());
   const [activeModule, setActiveModule] = useState('vehiculos');
   const esAdmin = sesion?.usuario.rol === 'ADMIN';
-  const itemsAdministracion = esAdmin ? administrationItems : [{ id: 'reservas', label: 'Reservas', icon: CalendarDays }];
+  const itemsAdministracion = esAdmin
+    ? [...administrationItems, { id: 'vehiculo-propio', label: 'Solicitud externa', icon: CarFront }]
+    : [
+      { id: 'reservas', label: 'Reservas', icon: CalendarDays },
+      { id: 'vehiculo-propio', label: 'Mi vehiculo', icon: CarFront },
+    ];
   const itemsConsulta = esAdmin ? queryItems : queryItems.filter((item) => item.id !== 'consulta-reservas');
 
   if (!sesion) return <LoginPage onLogin={(nuevaSesion) => {
@@ -83,8 +89,8 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Panel administrativo</p>
-            <h1>Gestion de Rentar</h1>
+            <p className="eyebrow">{esAdmin ? 'Panel administrativo' : 'Mi cuenta'}</p>
+            <h1>{esAdmin ? 'Gestion de Rentar' : 'Rentar'}</h1>
           </div>
           <button className="secondary-button" onClick={() => { cerrarSesion(); setSesion(null); }} type="button">
             Salir ({sesion.usuario.username})
@@ -94,6 +100,7 @@ function App() {
         {activeModule === 'vehiculos' && <VehiculosPage />}
         {activeModule === 'clientes' && <ClientesPage />}
         {activeModule === 'reservas' && <ReservasPage />}
+        {activeModule === 'vehiculo-propio' && <SolicitudVehiculoPage />}
         {activeModule === 'disponibilidad' && <DisponibilidadPage />}
         {activeModule === 'consulta-reservas' && <ConsultasPendientesPage tipo="reservas" />}
         {activeModule === 'historial' && <ConsultasPendientesPage tipo="historial" />}

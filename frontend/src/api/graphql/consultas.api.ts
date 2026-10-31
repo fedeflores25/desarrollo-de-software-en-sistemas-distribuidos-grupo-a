@@ -5,6 +5,7 @@ import type {
   ReservaConsultaFiltro,
 } from '../../types/consultas';
 import { ApiError } from '../rest/http';
+import { obtenerSesion } from '../auth';
 
 interface GraphQLResponse<T> {
   data?: T;
@@ -42,8 +43,7 @@ const HISTORIAL_QUERY = `
 `;
 
 async function graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const stored = localStorage.getItem('rentar.sesion');
-  const sesion = stored ? JSON.parse(stored) as { token?: string } : null;
+  const sesion = obtenerSesion();
   const response = await fetch(API_CONFIG.graphql.endpoint, {
     method: 'POST',
     headers: {

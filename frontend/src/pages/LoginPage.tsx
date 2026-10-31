@@ -20,7 +20,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   return <main className="login-page">
     <form className="login-card" onSubmit={(event) => void submit(event)}>
       <p className="eyebrow">Rentar</p><h1>Iniciar sesion</h1>
-      <p>Accede con el perfil administrador o cliente.</p>
+      <p>Ingresa con tu usuario para acceder a las funciones correspondientes a tu perfil.</p>
       <label className="form-field"><span>Usuario</span><input value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" /></label>
       <label className="form-field"><span>Contraseña</span><input value={password} onChange={(e) => setPassword(e.target.value)} required type="password" autoComplete="current-password" /></label>
       {error && <p className="form-error" role="alert">{error}</p>}
