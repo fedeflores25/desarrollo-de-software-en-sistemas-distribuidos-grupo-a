@@ -27,10 +27,18 @@ const DISPONIBILIDAD_QUERY = `
   }
 `;
 
+// Se agregan los segundos cuando el campo de fecha no los incluye.
+function fechaConSegundos(valor: string): string {
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(valor)
+    ? `${valor}:00`
+    : valor;
+}
+
 export async function buscarDisponibilidad(
   filtro: DisponibilidadFiltro,
 ): Promise<VehiculoDisponible[]> {
   const sesion = obtenerSesion();
+
   const response = await fetch(API_CONFIG.graphql.endpoint, {
     method: 'POST',
     headers: {
@@ -42,8 +50,8 @@ export async function buscarDisponibilidad(
       query: DISPONIBILIDAD_QUERY,
       variables: {
         filtro: {
-          fecha_inicio: filtro.fechaInicio,
-          fecha_fin: filtro.fechaFin,
+          fecha_inicio: fechaConSegundos(filtro.fechaInicio),
+          fecha_fin: fechaConSegundos(filtro.fechaFin),
           ...(filtro.tipo && { tipo: filtro.tipo }),
           ...(filtro.marca && { marca: filtro.marca }),
           ...(filtro.modelo && { modelo: filtro.modelo }),
