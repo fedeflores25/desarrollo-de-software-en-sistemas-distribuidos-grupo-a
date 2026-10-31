@@ -35,6 +35,7 @@ export function crearSolicitudVehiculo(data: SolicitudVehiculoRequest): Promise<
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...(data.clienteId && { cliente_id: data.clienteId }),
       documento: data.documento,
       patente: data.patente.trim().toUpperCase(),
       marca: data.marca,

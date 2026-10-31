@@ -4,6 +4,7 @@ export type EstadoSolicitudVehiculo = 'PENDIENTE' | 'INCORPORADA' | 'RECHAZADA';
 export type ResultadoValidacion = 'VALIDADO' | 'RECHAZADO' | '';
 
 export interface SolicitudVehiculoRequest {
+  clienteId?: number;
   documento: string;
   patente: string;
   marca: string;
