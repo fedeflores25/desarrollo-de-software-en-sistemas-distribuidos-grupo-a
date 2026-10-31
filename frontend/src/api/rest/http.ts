@@ -24,10 +24,13 @@ async function getErrorPayload(response: Response): Promise<Record<string, strin
 }
 
 export async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem('rentar.sesion');
+  const sesion = token ? JSON.parse(token) as { token?: string } : null;
   const response = await fetch(url, {
     ...options,
     headers: {
       Accept: 'application/json',
+      ...(sesion?.token && { Authorization: `Bearer ${sesion.token}` }),
       ...options?.headers,
     },
   });

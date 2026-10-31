@@ -28,6 +28,27 @@ button {
   cursor: pointer;
 }
 
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+}
+
+.login-card {
+  display: grid;
+  width: min(420px, 100%);
+  gap: 16px;
+  padding: 32px;
+  border: 1px solid #d8e0e8;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(28, 51, 72, 0.12);
+}
+
+.login-card h1 { color: #173653; margin-bottom: 0; }
+.login-card p:not(.eyebrow) { color: #5b6470; margin-bottom: 0; }
+
 .app-shell {
   display: grid;
   min-height: 100vh;
