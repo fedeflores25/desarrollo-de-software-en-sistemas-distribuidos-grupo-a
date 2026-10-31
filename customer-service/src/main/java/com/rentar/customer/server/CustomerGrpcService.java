@@ -10,12 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.rentar.customer.dto.ClienteRequest;
+import com.rentar.customer.dto.UsuarioAutenticado;
 import com.rentar.customer.entity.Cliente;
 import com.rentar.customer.exception.ClienteDuplicadoException;
 import com.rentar.customer.exception.ClienteNoEncontradoException;
 
 import com.rentar.customer.grpc.Customer;
 import com.rentar.customer.grpc.CustomerServiceGrpc;
+import com.rentar.customer.grpc.AuthenticateUserRequest;
+import com.rentar.customer.grpc.AuthenticateUserResponse;
 import com.rentar.customer.grpc.CreateCustomerRequest;
 import com.rentar.customer.grpc.DeactivateCustomerRequest;
 import com.rentar.customer.grpc.GetCustomerRequest;
@@ -24,8 +27,10 @@ import com.rentar.customer.grpc.ListCustomersResponse;
 import com.rentar.customer.grpc.UpdateCustomerRequest;
 import com.rentar.customer.grpc.VerifyCustomerRequest;
 import com.rentar.customer.grpc.VerifyCustomerResponse;
+import com.rentar.customer.grpc.UserRole;
 
 import com.rentar.customer.service.IClienteService;
+import com.rentar.customer.service.IUsuarioService;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -41,14 +46,51 @@ public class CustomerGrpcService
             LoggerFactory.getLogger(CustomerGrpcService.class);
 
     private final IClienteService clienteService;
+    private final IUsuarioService usuarioService;
     private final Validator validator;
 
     public CustomerGrpcService(
             IClienteService clienteService,
+            IUsuarioService usuarioService,
             Validator validator) {
 
         this.clienteService = clienteService;
+        this.usuarioService = usuarioService;
         this.validator = validator;
+    }
+
+    // ==========================================
+    // AUTENTICAR USUARIO
+    // ==========================================
+
+    @Override
+    public void authenticateUser(
+            AuthenticateUserRequest request,
+            StreamObserver<AuthenticateUserResponse> responseObserver) {
+
+        var usuario = usuarioService.autenticar(
+                request.getUsername(), request.getPassword());
+
+        AuthenticateUserResponse.Builder respuesta = AuthenticateUserResponse.newBuilder()
+                .setAutenticado(usuario.isPresent());
+
+        usuario.ifPresent(autenticado -> completarAutenticacion(respuesta, autenticado));
+
+        responseObserver.onNext(respuesta.build());
+        responseObserver.onCompleted();
+    }
+
+    private void completarAutenticacion(
+            AuthenticateUserResponse.Builder respuesta,
+            UsuarioAutenticado usuario) {
+
+        respuesta.setUsername(usuario.username())
+                .setRol(usuario.rol().name().equals("ADMIN")
+                        ? UserRole.USER_ROLE_ADMIN : UserRole.USER_ROLE_CLIENTE);
+
+        if (usuario.clienteId() != null) {
+            respuesta.setClienteId(usuario.clienteId());
+        }
     }
 
     // ==========================================
