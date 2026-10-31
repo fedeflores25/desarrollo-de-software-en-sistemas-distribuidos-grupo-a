@@ -89,8 +89,8 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Panel administrativo</p>
-            <h1>Gestion de Rentar</h1>
+            <p className="eyebrow">{esAdmin ? 'Panel administrativo' : 'Mi cuenta'}</p>
+            <h1>{esAdmin ? 'Gestion de Rentar' : 'Rentar'}</h1>
           </div>
           <button className="secondary-button" onClick={() => { cerrarSesion(); setSesion(null); }} type="button">
             Salir ({sesion.usuario.username})
