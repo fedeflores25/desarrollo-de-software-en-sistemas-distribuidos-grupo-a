@@ -4,7 +4,6 @@ import { ApiError } from '../api/rest/http';
 import { obtenerSesion } from '../api/auth';
 import { listarClientes } from '../api/rest/clientes.api';
 import { cancelarReserva, crearReserva } from '../api/rest/reservas.api';
-import { listarVehiculos } from '../api/rest/vehiculos.api';
 import { consultarReservas } from '../api/graphql/consultas.api';
 import { buscarDisponibilidad } from '../api/graphql/disponibilidad.api';
 import type { Cliente } from '../types/cliente';
@@ -40,9 +39,8 @@ export function ReservasPage() {
         await cargarReservasConfirmadas();
         return;
       }
-      const [clientesResult, vehiculosResult] = await Promise.all([listarClientes(), listarVehiculos()]);
+      const clientesResult = await listarClientes();
       setClientes(clientesResult.filter((cliente) => cliente.activo));
-      setVehiculos(vehiculosResult.filter((vehiculo) => vehiculo.activo));
       await cargarReservasConfirmadas();
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : 'No fue posible cargar los datos de reserva.');
@@ -56,6 +54,12 @@ export function ReservasPage() {
       setError('Indica inicio y finalizacion antes de consultar disponibilidad.');
       return;
     }
+
+    if (fechaFin <= fechaInicio) {
+      setError('La finalizacion debe ser posterior al inicio.');
+      return;
+    }
+
     setGuardando(true);
     setError('');
     try {
@@ -90,7 +94,7 @@ export function ReservasPage() {
         fechaFin,
       });
       setResultado(reserva);
-      setClienteId('');
+      if (!esCliente) setClienteId('');
       setVehiculoId('');
       setFechaInicio('');
       setFechaFin('');
@@ -157,16 +161,33 @@ export function ReservasPage() {
               </label>
               <label className="form-field">
                 <span>Inicio</span>
-                <input onChange={(event) => setFechaInicio(event.target.value)} required type="datetime-local" value={fechaInicio} />
+                <input
+                  onChange={(event) => {
+                    setFechaInicio(event.target.value);
+                    setVehiculoId('');
+                  }}
+                  required
+                  type="datetime-local"
+                  value={fechaInicio}
+                />
               </label>
               <label className="form-field">
                 <span>Finalizacion</span>
-                <input onChange={(event) => setFechaFin(event.target.value)} required type="datetime-local" value={fechaFin} />
+                <input
+                  min={fechaInicio || undefined}
+                  onChange={(event) => {
+                    setFechaFin(event.target.value);
+                    setVehiculoId('');
+                  }}
+                  required
+                  type="datetime-local"
+                  value={fechaFin}
+                />
               </label>
               <div className="form-actions">
-                {esCliente && <button className="secondary-button" disabled={guardando} onClick={() => void cargarVehiculosDisponibles()} type="button">
+                <button className="secondary-button" disabled={guardando} onClick={() => void cargarVehiculosDisponibles()} type="button">
                   Buscar vehiculos disponibles
-                </button>}
+                </button>
                 <button className="primary-button" disabled={guardando} type="submit">
                   <CalendarPlus aria-hidden="true" size={18} />
                   {guardando ? 'Procesando...' : 'Crear reserva'}
