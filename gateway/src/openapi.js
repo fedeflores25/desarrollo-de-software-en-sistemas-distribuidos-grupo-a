@@ -43,6 +43,12 @@ function operation(tag, summary, status, schema, options = {}) {
   if (options.params) result.parameters = options.params;
   if (options.body) result.requestBody = requestBody(options.body);
 
+  if (tag !== 'Autenticacion') {
+    result.security = [{ bearerAuth: [] }];
+    result.responses[401] = errorResponse('Sesion ausente, invalida o vencida.');
+    result.responses[403] = errorResponse('El rol autenticado no tiene permisos para esta operacion.');
+  }
+
   for (const [code, description] of Object.entries(options.errors || {})) {
     result.responses[code] = errorResponse(description);
   }
@@ -223,6 +229,21 @@ module.exports = {
       ),
     },
 
+    '/api/vehiculos/solicitudes-externas': {
+      post: operation('VehÃ­culos', 'Solicitar incorporacion de vehiculo propio', 202, ref('SolicitudVehiculoExterno'), {
+        body: 'SolicitudVehiculoExternoInput',
+        errors: { 400: 'Datos invalidos para la solicitud.' },
+        description: 'CLIENTE usa el clienteId de su sesion. ADMIN puede indicar cliente_id.',
+      }),
+    },
+
+    '/api/vehiculos/solicitudes-externas/{id}': {
+      get: operation('VehÃ­culos', 'Consultar solicitud de incorporacion', 200, ref('SolicitudVehiculoExterno'), {
+        params: [idParam],
+        errors: { 404: 'Solicitud no encontrada.' },
+      }),
+    },
+
     '/api/vehiculos/{id}': {
       get: operation(
         'Vehículos', 'Consultar vehículo por ID',
@@ -401,6 +422,30 @@ module.exports = {
             example: 'DISPONIBLE',
           },
           activo: { type: 'boolean', example: true },
+        },
+      },
+
+      SolicitudVehiculoExternoInput: {
+        type: 'object',
+        required: ['documento', 'patente', 'marca', 'modelo', 'anio', 'tipo', 'precio_diario'],
+        properties: {
+          cliente_id: { type: 'integer', format: 'int64', description: 'Solo ADMIN puede informarlo.' },
+          documento: { type: 'string', example: '30111222' },
+          patente: { type: 'string', example: 'NUE123' },
+          ...vehicleFields,
+        },
+      },
+
+      SolicitudVehiculoExterno: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: '1' },
+          cliente_id: { type: 'string', example: '1' },
+          patente: { type: 'string', example: 'NUE123' },
+          estado: { type: 'string', enum: ['PENDIENTE', 'INCORPORADA', 'RECHAZADA'] },
+          resultado_patente: { type: 'string', enum: ['VALIDADO', 'RECHAZADO', ''] },
+          resultado_titularidad: { type: 'string', enum: ['VALIDADO', 'RECHAZADO', ''] },
+          vehiculo_id: { type: 'string', nullable: true },
         },
       },
 
