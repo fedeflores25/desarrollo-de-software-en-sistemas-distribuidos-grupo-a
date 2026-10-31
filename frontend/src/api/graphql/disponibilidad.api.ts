@@ -1,5 +1,6 @@
 import { ApiError } from '../rest/http';
 import { API_CONFIG } from '../../config/api';
+import { obtenerSesion } from '../auth';
 import type { DisponibilidadFiltro, VehiculoDisponible } from '../../types/disponibilidad';
 
 interface GraphQLResponse<T> {
@@ -29,11 +30,13 @@ const DISPONIBILIDAD_QUERY = `
 export async function buscarDisponibilidad(
   filtro: DisponibilidadFiltro,
 ): Promise<VehiculoDisponible[]> {
+  const sesion = obtenerSesion();
   const response = await fetch(API_CONFIG.graphql.endpoint, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...(sesion?.token && { Authorization: `Bearer ${sesion.token}` }),
     },
     body: JSON.stringify({
       query: DISPONIBILIDAD_QUERY,
