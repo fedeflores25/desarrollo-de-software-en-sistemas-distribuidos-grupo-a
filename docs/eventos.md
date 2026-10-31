@@ -106,7 +106,7 @@ Estos reenvíos pueden producir mensajes repetidos, por lo que se controla el es
 4. Repetir la demostración en una solicitud nueva con patente `EXT102` y un cliente diferente del titular simulado (`clienteId != 2`), o con documento incorrecto. Debe quedar `RECHAZADA`, sin crear vehículo.
 5. Enviar las dos validaciones en orden inverso para confirmar que el orden de llegada no cambia el resultado. Comprobar además que una entrega repetida no incorpora dos veces el mismo vehículo.
 
-Los casos de prueba presuponen una base sin esas patentes incorporadas previamente. El flujo completo depende de las respuestas de patente externa del servicio policial que desarrolla otro integrante.
+Los casos de prueba presuponen una base sin esas patentes incorporadas previamente. El Gateway incluye el registro policial simulado: consume `vehiculos.externos.registrados` y publica `vehiculos.externos.validacion.patente` con el mismo `correlationId`.
 
 ## Flujo 3: mantenimiento preventivo de una reserva
 
