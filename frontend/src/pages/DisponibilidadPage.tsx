@@ -25,8 +25,14 @@ export function DisponibilidadPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setCargando(true);
     setError('');
+
+    if (fechaFin <= fechaInicio) {
+      setError('La finalizacion debe ser posterior al inicio.');
+      return;
+    }
+
+    setCargando(true);
 
     const filtro: DisponibilidadFiltro = {
       fechaInicio,
@@ -61,11 +67,22 @@ export function DisponibilidadPage() {
         <form className="form-grid" onSubmit={(event) => void handleSubmit(event)}>
           <label className="form-field">
             <span>Inicio</span>
-            <input onChange={(event) => setFechaInicio(event.target.value)} required type="datetime-local" value={fechaInicio} />
+            <input
+              onChange={(event) => setFechaInicio(event.target.value)}
+              required
+              type="datetime-local"
+              value={fechaInicio}
+            />
           </label>
           <label className="form-field">
             <span>Finalizacion</span>
-            <input onChange={(event) => setFechaFin(event.target.value)} required type="datetime-local" value={fechaFin} />
+            <input
+              min={fechaInicio || undefined}
+              onChange={(event) => setFechaFin(event.target.value)}
+              required
+              type="datetime-local"
+              value={fechaFin}
+            />
           </label>
           <label className="form-field">
             <span>Tipo</span>

@@ -5,7 +5,8 @@ const rentalService = require('../../services/rentalService');
 // POST /api/reservas (Alta de Reserva - Orquestada)
 router.post('/', async (req, res) => {
     try {
-        const nuevaReserva = await rentalService.createReservation(req.body);
+        const clienteId = req.user.rol === 'CLIENTE' ? req.user.clienteId : req.body.cliente_id;
+        const nuevaReserva = await rentalService.createReservation({ ...req.body, cliente_id: clienteId });
         res.status(201).json(nuevaReserva);
     } catch (error) {
         
@@ -16,6 +17,10 @@ router.post('/', async (req, res) => {
 // PATCH /api/reservas/:id/cancelar (Cancelación de Reserva)
 router.patch('/:id/cancelar', async (req, res) => {
     try {
+        const reserva = await rentalService.getReservation(req.params.id);
+        if (req.user.rol === 'CLIENTE' && Number(reserva.cliente_id) !== Number(req.user.clienteId)) {
+            return res.status(403).json({ error: 'No tiene permisos para cancelar esta reserva.' });
+        }
         const reservaCancelada = await rentalService.cancelReservation(req.params.id);
         res.json(reservaCancelada);
     } catch (error) {

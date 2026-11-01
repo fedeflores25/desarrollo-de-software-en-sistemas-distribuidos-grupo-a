@@ -9,3 +9,10 @@ INSERT IGNORE INTO cliente (id, documento, nombre, apellido, email, telefono, fe
 (8, '30888999', 'Hector', 'Diaz', 'hector.diaz@example.com', '1123450008', '1994-12-25', TRUE),
 (9, '30999000', 'Irene', 'Castro', 'irene.castro@example.com', '1123450009', '1993-07-07', TRUE),
 (10, '31000111', 'Javier', 'Molina', 'javier.molina@example.com', '1123450010', '1989-03-19', FALSE);
+
+-- Credenciales academicas de demostracion. Las contrasenas se almacenan con BCrypt.
+INSERT IGNORE INTO usuario (id, username, password_hash, rol, cliente_id) VALUES
+(1, 'admin', '$2b$10$/AwBjKpsMFQkU2TjLzjPSOY1YSPoWLMswRAK7uYQbLAJ6bOcKRgTO', 'ADMIN', NULL),
+(2, 'cliente', '$2b$10$Bty.JRWdP14LKi2v4vlAXOhFYhaOju4/gWoJOUxmYKYgFNJ05dAHq', 'CLIENTE', 1),
+(3, 'cliente2', '$2b$10$Bty.JRWdP14LKi2v4vlAXOhFYhaOju4/gWoJOUxmYKYgFNJ05dAHq', 'CLIENTE', 2),
+(4, 'cliente3', '$2b$10$Bty.JRWdP14LKi2v4vlAXOhFYhaOju4/gWoJOUxmYKYgFNJ05dAHq', 'CLIENTE', 3);

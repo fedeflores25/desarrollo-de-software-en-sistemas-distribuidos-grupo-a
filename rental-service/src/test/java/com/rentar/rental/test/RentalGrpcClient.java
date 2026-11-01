@@ -8,6 +8,7 @@ import com.rentar.rental.grpc.CancelReservationRequest;
 import com.rentar.rental.grpc.CreateReservationRequest;
 import com.rentar.rental.grpc.GetBusyVehicleIdsRequest;
 import com.rentar.rental.grpc.GetRentalHistoryRequest;
+import com.rentar.rental.grpc.GetRentalHistoryResponse;
 import com.rentar.rental.grpc.GetReservationRequest;
 import com.rentar.rental.grpc.ListReservationsRequest;
 import com.rentar.rental.grpc.ListReservationsResponse;
@@ -45,7 +46,7 @@ public class RentalGrpcClient {
             String inicio = fecha(30);
             String fin = fecha(33);
 
-            // 1. Crear una reserva
+            // 1. Crear una reserva.
             System.out.println("=== 1. CREAR RESERVA ===");
             Reservation creada = cliente.createReservation(
                     CreateReservationRequest.newBuilder()
@@ -57,7 +58,7 @@ public class RentalGrpcClient {
                             .build());
             mostrar(creada);
 
-            // 2. Crear otra que se solapa: debe fallar
+            // 2. Crear otra que se solapa: debe fallar.
             System.out.println("\n=== 2. CREAR RESERVA SOLAPADA (error esperado) ===");
             try {
                 cliente.createReservation(
@@ -73,19 +74,19 @@ public class RentalGrpcClient {
                 System.out.println("Error gRPC: " + e.getStatus());
             }
 
-            // 3. Consultar por id
+            // 3. Consultar por id.
             System.out.println("\n=== 3. CONSULTAR POR ID ===");
             mostrar(cliente.getReservation(
                     GetReservationRequest.newBuilder().setId(creada.getId()).build()));
 
-            // 4. Listar las reservas del cliente
+            // 4. Listar las reservas del cliente.
             System.out.println("\n=== 4. LISTAR RESERVAS DEL CLIENTE ===");
             ListReservationsResponse lista = cliente.listReservations(
                     ListReservationsRequest.newBuilder().setClienteId(CLIENTE_ID).build());
             System.out.println("Reservas encontradas: " + lista.getReservasCount());
             lista.getReservasList().forEach(RentalGrpcClient::mostrarLinea);
 
-            // 5. Vehiculos ocupados en el periodo
+            // 5. Vehiculos ocupados en el periodo.
             System.out.println("\n=== 5. VEHICULOS OCUPADOS EN EL PERIODO ===");
             System.out.println("IDs: " + cliente.getBusyVehicleIds(
                     GetBusyVehicleIdsRequest.newBuilder()
@@ -93,19 +94,19 @@ public class RentalGrpcClient {
                             .setFechaFin(fin)
                             .build()).getVehiculoIdsList());
 
-            // 6. Cancelar
+            // 6. Cancelar.
             System.out.println("\n=== 6. CANCELAR RESERVA ===");
             mostrar(cliente.cancelReservation(
                     CancelReservationRequest.newBuilder().setId(creada.getId()).build()));
 
-            // 7. Historial del cliente
+            // 7. Historial del cliente.
             System.out.println("\n=== 7. HISTORIAL DEL CLIENTE ===");
-            ListReservationsResponse historial = cliente.getRentalHistory(
+            GetRentalHistoryResponse historial = cliente.getRentalHistory(
                     GetRentalHistoryRequest.newBuilder().setClienteId(CLIENTE_ID).build());
             System.out.println("Reservas en el historial: " + historial.getReservasCount());
             historial.getReservasList().forEach(RentalGrpcClient::mostrarLinea);
 
-            // 8. Consultar una reserva que no existe
+            // 8. Consultar una reserva que no existe.
             System.out.println("\n=== 8. RESERVA INEXISTENTE (error esperado) ===");
             try {
                 cliente.getReservation(GetReservationRequest.newBuilder().setId(999999L).build());

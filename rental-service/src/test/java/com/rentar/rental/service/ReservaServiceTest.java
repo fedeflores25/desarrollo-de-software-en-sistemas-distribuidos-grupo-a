@@ -21,9 +21,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.rentar.rental.entity.Reserva;
 import com.rentar.rental.entity.enums.EstadoReserva;
+import com.rentar.rental.events.ReservaConfirmadaEvent;
 import com.rentar.rental.exception.ReservaEstadoInvalidoException;
 import com.rentar.rental.exception.ReservaInvalidaException;
 import com.rentar.rental.exception.ReservaNoEncontradaException;
@@ -36,6 +38,12 @@ class ReservaServiceTest {
 
     @Mock
     private ReservaRepository reservaRepository;
+
+    @Mock
+    private IMantenimientoService mantenimientoService;
+
+    @Mock
+    private ApplicationEventPublisher eventos;
 
     @InjectMocks
     private ReservaService reservaService;
@@ -78,6 +86,10 @@ class ReservaServiceTest {
         assertEquals(3, creada.getCantidadDias());
         assertEquals(0, new BigDecimal("301.50").compareTo(creada.getImporteTotal()));
         assertNotNull(creada.getFechaAlta());
+
+        // Deja el mantenimiento PENDIENTE y avisa que la reserva se confirmo
+        verify(mantenimientoService).registrarPendiente(any());
+        verify(eventos).publishEvent(any(ReservaConfirmadaEvent.class));
     }
 
     @Test
@@ -103,6 +115,7 @@ class ReservaServiceTest {
                 () -> reservaService.crear(10L, 20L, enDias(10), enDias(12), PRECIO));
 
         verify(reservaRepository, never()).save(any());
+        verify(eventos, never()).publishEvent(any(Object.class));
     }
 
     @Test

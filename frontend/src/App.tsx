@@ -2,16 +2,18 @@ import {
   CalendarDays,
   CarFront,
   ClipboardList,
-  LayoutDashboard,
   Search,
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
+import { cerrarSesion, obtenerSesion, type Sesion } from './api/auth';
 import { ClientesPage } from './pages/ClientesPage';
 import { ConsultasPendientesPage } from './pages/ConsultasPendientesPage';
 import { DisponibilidadPage } from './pages/DisponibilidadPage';
 import { ReservasPage } from './pages/ReservasPage';
+import { SolicitudVehiculoPage } from './pages/SolicitudVehiculoPage';
 import { VehiculosPage } from './pages/VehiculosPage';
+import { LoginPage } from './pages/LoginPage';
 
 const administrationItems = [
   { id: 'vehiculos', label: 'Vehiculos', icon: CarFront },
@@ -26,7 +28,21 @@ const queryItems = [
 ];
 
 function App() {
+  const [sesion, setSesion] = useState<Sesion | null>(() => obtenerSesion());
   const [activeModule, setActiveModule] = useState('vehiculos');
+  const esAdmin = sesion?.usuario.rol === 'ADMIN';
+  const itemsAdministracion = esAdmin
+    ? [...administrationItems, { id: 'vehiculo-propio', label: 'Solicitud externa', icon: CarFront }]
+    : [
+      { id: 'reservas', label: 'Reservas', icon: CalendarDays },
+      { id: 'vehiculo-propio', label: 'Mi vehiculo', icon: CarFront },
+    ];
+  const itemsConsulta = esAdmin ? queryItems : queryItems.filter((item) => item.id !== 'consulta-reservas');
+
+  if (!sesion) return <LoginPage onLogin={(nuevaSesion) => {
+    setSesion(nuevaSesion);
+    setActiveModule(nuevaSesion.usuario.rol === 'ADMIN' ? 'vehiculos' : 'disponibilidad');
+  }} />;
 
   return (
     <div className="app-shell">
@@ -41,7 +57,7 @@ function App() {
 
         <nav className="sidebar-nav" aria-label="Navegacion principal">
           <span className="nav-section-label">Administracion</span>
-          {administrationItems.map(({ id, label, icon: Icon }) => (
+          {itemsAdministracion.map(({ id, label, icon: Icon }) => (
             <button
               aria-current={activeModule === id ? 'page' : undefined}
               className={activeModule === id ? 'nav-item nav-item-active' : 'nav-item'}
@@ -55,7 +71,7 @@ function App() {
           ))}
 
           <span className="nav-section-label">Consultas</span>
-          {queryItems.map(({ id, label, icon: Icon }) => (
+          {itemsConsulta.map(({ id, label, icon: Icon }) => (
             <button
               aria-current={activeModule === id ? 'page' : undefined}
               className={activeModule === id ? 'nav-item nav-item-active' : 'nav-item'}
@@ -73,15 +89,18 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Panel administrativo</p>
-            <h1>Gestion de Rentar</h1>
+            <p className="eyebrow">{esAdmin ? 'Panel administrativo' : 'Mi cuenta'}</p>
+            <h1>{esAdmin ? 'Gestion de Rentar' : 'Rentar'}</h1>
           </div>
-          <LayoutDashboard aria-hidden="true" className="topbar-icon" size={24} />
+          <button className="secondary-button" onClick={() => { cerrarSesion(); setSesion(null); }} type="button">
+            Salir ({sesion.usuario.username})
+          </button>
         </header>
 
         {activeModule === 'vehiculos' && <VehiculosPage />}
         {activeModule === 'clientes' && <ClientesPage />}
         {activeModule === 'reservas' && <ReservasPage />}
+        {activeModule === 'vehiculo-propio' && <SolicitudVehiculoPage />}
         {activeModule === 'disponibilidad' && <DisponibilidadPage />}
         {activeModule === 'consulta-reservas' && <ConsultasPendientesPage tipo="reservas" />}
         {activeModule === 'historial' && <ConsultasPendientesPage tipo="historial" />}

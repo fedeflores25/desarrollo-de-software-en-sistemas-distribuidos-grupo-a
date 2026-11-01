@@ -1,0 +1,347 @@
+:root {
+  --color-grafito: #18201f;
+  --color-grafito-profundo: #101615;
+  --color-verde: #257a57;
+  --color-verde-oscuro: #18543c;
+  --color-verde-suave: #e4f3eb;
+  --color-azul: #173b5d;
+  --color-azul-oscuro: #102c46;
+  --color-acero: #607386;
+  --color-humo: #f4f7f8;
+  --color-blanco: #ffffff;
+  --color-dorado: #d4af37;
+  --color-texto: #1d2a35;
+  --color-texto-secundario: #617080;
+  --color-borde: #d9e1e7;
+  --sombra-panel: 0 14px 34px rgba(22, 43, 61, 0.08);
+}
+
+body,
+.app-shell {
+  color: var(--color-texto);
+  background: var(--color-humo);
+}
+
+.login-page {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(83, 181, 130, 0.24), transparent 32%),
+    linear-gradient(135deg, var(--color-grafito-profundo), var(--color-grafito));
+}
+
+.login-page::before {
+  position: absolute;
+  width: min(76vw, 820px);
+  height: min(76vw, 820px);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 50%;
+  content: '';
+  transform: translate(34%, -38%);
+}
+
+.login-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 4px solid var(--color-verde);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.login-card .eyebrow {
+  color: var(--color-verde);
+}
+
+.login-card h1 {
+  color: var(--color-grafito);
+  font-size: clamp(26px, 4vw, 32px);
+}
+
+.login-card .primary-button {
+  width: 100%;
+  margin-top: 8px;
+  border-color: var(--color-verde);
+  background: var(--color-verde);
+  color: var(--color-blanco);
+}
+
+.login-card .primary-button:hover,
+.login-card .primary-button:focus-visible {
+  background: var(--color-verde-oscuro);
+  outline-color: var(--color-verde);
+}
+
+.login-card .form-field {
+  color: var(--color-grafito);
+}
+
+.login-card .form-field input {
+  border-color: #c9d5cf;
+  background: #fbfdfc;
+  color: var(--color-texto);
+}
+
+.login-card .form-field input:focus {
+  border-color: var(--color-verde);
+  box-shadow: 0 0 0 3px rgba(37, 122, 87, 0.13);
+}
+
+.app-shell {
+  grid-template-columns: 272px minmax(0, 1fr);
+}
+
+.sidebar {
+  background: linear-gradient(180deg, var(--color-azul), var(--color-azul-oscuro));
+  box-shadow: 4px 0 18px rgba(10, 32, 50, 0.11);
+}
+
+.brand {
+  min-height: 88px;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  border-color: var(--color-dorado);
+  color: var(--color-dorado);
+}
+
+.sidebar-nav {
+  gap: 6px;
+  padding: 26px 14px;
+}
+
+.nav-section-label {
+  margin-top: 20px;
+  color: #bbcad7;
+  letter-spacing: 0.05em;
+}
+
+.nav-item {
+  min-height: 46px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover,
+.nav-item:focus-visible,
+.nav-item-active {
+  border-left-color: var(--color-dorado);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.topbar {
+  min-height: 88px;
+  padding: 18px 40px;
+  border-color: var(--color-borde);
+  background: var(--color-blanco);
+}
+
+.topbar h1 {
+  color: var(--color-azul);
+  font-size: 24px;
+}
+
+.topbar .eyebrow {
+  color: var(--color-acero);
+}
+
+.topbar .secondary-button {
+  min-height: 42px;
+  border-color: #b8c5cf;
+  background: #f8fafb;
+}
+
+.topbar .secondary-button:hover,
+.topbar .secondary-button:focus-visible {
+  border-color: var(--color-azul);
+  background: #eef4f8;
+}
+
+.page-content {
+  max-width: 1480px;
+  padding: 34px 40px 48px;
+}
+
+.page-heading,
+.toolbar,
+.form-panel,
+.data-table-wrapper,
+.feedback-message,
+.confirmation-dialog {
+  border-color: var(--color-borde);
+  border-radius: 10px;
+  box-shadow: var(--sombra-panel);
+}
+
+.page-heading {
+  padding: 26px 28px;
+  border-left: 4px solid var(--color-dorado);
+}
+
+.page-heading h2,
+.form-panel-heading h3,
+.confirmation-dialog h3,
+.workspace-heading h2 {
+  color: var(--color-azul);
+}
+
+.eyebrow {
+  color: #aa8220;
+  letter-spacing: 0.08em;
+}
+
+.form-panel {
+  padding: 26px 28px;
+}
+
+.form-grid {
+  gap: 18px;
+}
+
+.form-field input,
+.form-field select,
+.search-field {
+  min-height: 44px;
+  border-color: #c7d2db;
+  border-radius: 6px;
+  background: var(--color-blanco);
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.search-field:focus-within {
+  border-color: var(--color-azul);
+  box-shadow: 0 0 0 3px rgba(23, 59, 93, 0.12);
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  min-height: 44px;
+  border-radius: 6px;
+}
+
+.primary-button {
+  border-color: var(--color-azul);
+  background: var(--color-azul);
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  background: var(--color-azul-oscuro);
+  outline-color: var(--color-azul);
+}
+
+.secondary-button {
+  border-color: #9eb0bd;
+  color: var(--color-azul);
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  border-color: var(--color-azul);
+  background: #edf4f8;
+}
+
+.data-table-wrapper {
+  overflow: hidden;
+}
+
+.data-table th {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  background: var(--color-azul);
+}
+
+.data-table td {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.status-pendiente,
+.status-reservado {
+  border-color: #b98b22;
+  background: #fff6db;
+  color: #765407;
+}
+
+.status-incorporada,
+.status-disponible,
+.status-active {
+  border-color: #5bab83;
+  background: var(--color-verde-suave);
+  color: var(--color-verde-oscuro);
+}
+
+.status-rechazada,
+.status-inactive {
+  border-color: #cc7a82;
+  background: #fff0f1;
+  color: #8b303b;
+}
+
+.feedback-message {
+  line-height: 1.45;
+}
+
+.feedback-success {
+  border-color: #5bab83;
+  background: var(--color-verde-suave);
+  color: var(--color-verde-oscuro);
+}
+
+.reservation-selection-item {
+  border-radius: 7px;
+  border-color: var(--color-borde);
+  background: #f9fbfc;
+}
+
+.solicitud-resultado {
+  display: grid;
+  gap: 20px;
+}
+
+.solicitud-estados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  color: var(--color-texto-secundario);
+  font-size: 14px;
+}
+
+@media (max-width: 820px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .page-content,
+  .topbar {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-card {
+    padding: 26px 22px;
+  }
+
+  .page-content {
+    padding-top: 22px;
+  }
+
+  .page-heading,
+  .form-panel {
+    padding: 22px 18px;
+  }
+
+  .solicitud-estados {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+}

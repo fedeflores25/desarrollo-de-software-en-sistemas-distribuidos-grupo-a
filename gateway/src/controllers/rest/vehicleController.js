@@ -1,6 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const vehicleService = require('../../services/vehicleService');
+const { requireRoles } = require('../../middleware/auth');
+
+router.post('/solicitudes-externas', requireRoles('ADMIN', 'CLIENTE'), async (req, res) => {
+    try {
+        const clienteId = req.user.rol === 'CLIENTE' ? req.user.clienteId : req.body.cliente_id;
+        const solicitud = await vehicleService.createExternalVehicleApplication({
+            ...req.body,
+            cliente_id: clienteId,
+        });
+        res.status(202).json(solicitud);
+    } catch (error) {
+        res.status(400).json({ error: error.details || 'No fue posible registrar la solicitud.' });
+    }
+});
+
+router.get('/solicitudes-externas/:id', requireRoles('ADMIN', 'CLIENTE'), async (req, res) => {
+    try {
+        const solicitud = await vehicleService.getExternalVehicleApplication(req.params.id);
+        if (req.user.rol === 'CLIENTE' && Number(solicitud.cliente_id) !== Number(req.user.clienteId)) {
+            return res.status(403).json({ error: 'No tiene permisos para consultar esta solicitud.' });
+        }
+        return res.json(solicitud);
+    } catch (error) {
+        return res.status(error.code === 5 ? 404 : 400).json({ error: error.details || 'Solicitud no encontrada.' });
+    }
+});
+
+router.use(requireRoles('ADMIN'));
 
 router.get('/', async (req, res) => {
     try {
